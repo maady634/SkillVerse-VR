@@ -1,0 +1,25 @@
+fileFormatVersion: 2
+guid: 12d2e4091b4b1af4394fbb0a8ec66920
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - ManifaPro2
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: f1532cf905eb2634492927ee5e86d466, type: 3}
+  - {fileID: 12800000, guid: 023dc85f2d414884b92899ac2ce4cf06, type: 3}
+  - {fileID: 12800000, guid: d1b146993f42a76439ee71d7878acd0b, type: 3}
+  - {fileID: 12800000, guid: d0c7adf93d20c8342b34e77d31438a0b, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
