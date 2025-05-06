@@ -6,7 +6,7 @@ using UnityEngine.Events;
 [CreateAssetMenu(fileName = "StageSO", menuName = "StageSO")]
 public class StageSO : ScriptableObject
 {
-    public enum CompletionType { AfterAudio, CodeTrigger }
+    public enum CompletionType { AfterAudio, CodeTrigger, UIandTrigger }
 
     public string stepSubtitle;
     public AudioClip stepAudio;
@@ -23,9 +23,9 @@ public class StageSO : ScriptableObject
     public CompletionType completionType;
     public float helpDelay = 30f; // Delay in seconds for help to appear after step starts
 
-    
-
     public bool CorrectIcon = true;
     //public UnityEvent completionEvent;
+
+    public GameObject prefab;
 }
 

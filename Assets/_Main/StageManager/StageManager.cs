@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.InputSystem;
+using System.ComponentModel;
 
 public class StageManager : MonoBehaviour
 {
@@ -20,6 +21,9 @@ public class StageManager : MonoBehaviour
 
     public bool EditorShortcut = false;
     private bool CompletionLock = true;
+
+    [ReadOnly(true)]
+    GameObject PanelTemp;
 
     private void Awake()
     {
@@ -87,6 +91,10 @@ public class StageManager : MonoBehaviour
                     {
                         CompletionLock = false;
                         StepCompleted();
+                    }
+                    else if(currentStep.completionType == StageSO.CompletionType.UIandTrigger)
+                    {
+                         PanelTemp = Instantiate(currentStep.prefab, currentStage.PrefabPosition.transform.localPosition, currentStage.PrefabPosition.transform.localRotation) as GameObject;        
                     }
                 }));
 
@@ -190,6 +198,11 @@ public class StageManager : MonoBehaviour
             ShowComplete();
 
             currentStepIndex++;
+
+            if(PanelTemp != null)
+            {
+                Destroy(PanelTemp);
+            }
 
             if (currentStepIndex < Stages.Length)
             {
