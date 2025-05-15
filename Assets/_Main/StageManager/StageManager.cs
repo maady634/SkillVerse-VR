@@ -12,9 +12,13 @@ public class StageManager : MonoBehaviour
     public TextMeshProUGUI subtitle;
     public AudioSource AudioHandler;
 
+    public GameObject User;
+
+    public int currentStepIndex = 0;
+    
     public StageSO[] StageSOs; // Assign in Inspector
     public Stages[] Stages; // Gameobjects for each step
-    private int currentStepIndex = 0;
+
     private bool isStepCompleted = true; // Flag to prevent next step from triggering prematurely
     public GameObject _CorrectIcon;
     public AudioClip _CorrectAudio;
@@ -84,6 +88,17 @@ public class StageManager : MonoBehaviour
                 if (currentStage?.StartEvent != null) currentStage.StartEvent.Invoke();
                 Invoke("DelayEventFunc", currentStage?.DelayEventTime ?? 0);
 
+                if (currentStage.userPosition != null)
+                {
+                    User.transform.position = currentStage.userPosition.transform.position;
+                    User.transform.rotation = currentStage.userPosition.transform.rotation;
+                }
+
+                if (currentStep.completionType == StageSO.CompletionType.UIandTrigger)
+                {
+                    PanelTemp = Instantiate(currentStep.prefab, currentStage.prefabPosition.transform.localPosition, currentStage.prefabPosition.transform.localRotation) as GameObject;
+                }
+
                 // Play Step Audio
                 StartCoroutine(PlayAudioWithCompletion(AudioHandler, currentStep.stepAudio, () =>
                 {
@@ -91,10 +106,6 @@ public class StageManager : MonoBehaviour
                     {
                         CompletionLock = false;
                         StepCompleted();
-                    }
-                    else if(currentStep.completionType == StageSO.CompletionType.UIandTrigger)
-                    {
-                         PanelTemp = Instantiate(currentStep.prefab, currentStage.PrefabPosition.transform.localPosition, currentStage.PrefabPosition.transform.localRotation) as GameObject;        
                     }
                 }));
 
@@ -162,6 +173,8 @@ public class StageManager : MonoBehaviour
     {
         if (audioSource != null && clip != null)
         {
+            //yield return new WaitForSeconds(3);
+
             audioSource.clip = clip;
             audioSource.Play();
 
@@ -211,7 +224,7 @@ public class StageManager : MonoBehaviour
 
                 Invoke(nameof(StartNextStep), currentStep.completionAudio.length + (currentStage?.StepCompletionTime ?? 0));
             }
-
+            Debug.Log("Step Completed :" + currentStepIndex);
             CompletionLock = true;
         }
     }

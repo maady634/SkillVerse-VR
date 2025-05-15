@@ -11,5 +11,6 @@ public class Stages : MonoBehaviour
     public UnityEvent EndEvent;
     public UnityEvent DelayEvent;
 
-    public GameObject PrefabPosition;
+    public GameObject prefabPosition;
+    public GameObject userPosition;
 }
