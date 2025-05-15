@@ -22,6 +22,6 @@ MonoBehaviour:
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 2
-  helpDelay: 25
+  helpDelay: 30
   CorrectIcon: 1
   prefab: {fileID: 151174433986318599, guid: 64be5a419a9a5924e857137f4f031c89, type: 3}
