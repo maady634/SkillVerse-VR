@@ -24,6 +24,7 @@ public class StageSO : ScriptableObject
     public float helpDelay = 30f; // Delay in seconds for help to appear after step starts
 
     public bool CorrectIcon = true;
+    public bool Score = true;
     //public UnityEvent completionEvent;
 
     public GameObject prefab;

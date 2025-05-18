@@ -1,34 +1,34 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+//using System.Collections;
+//using System.Collections.Generic;
+//using UnityEngine;
 
-public class Test : MonoBehaviour
-{
+//public class Test : MonoBehaviour
+//{
 
-    int i = 25;
+//    int i = 25;
 
-    int health = 5000;
-
-
-    public GameObject sphere;
-
-    public void HiTHero()
-    {
-        health = health - 100;
-    }
+//    int health = 5000;
 
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        Debug.Log("Game is starting");
+//    public GameObject sphere;
 
-        sphere.SetActive(false);
-    }
+//    public void HiTHero()
+//    {
+//        health = health - 100;
+//    }
 
-    // Update is called once per frame
-    void Update()
-    {
+
+//    // Start is called before the first frame update
+//    void Start()
+//    {
+//        Debug.Log("Game is starting");
+
+//        sphere.SetActive(false);
+//    }
+
+//    // Update is called once per frame
+//    void Update()
+//    {
         
-    }
-}
+//    }
+//}

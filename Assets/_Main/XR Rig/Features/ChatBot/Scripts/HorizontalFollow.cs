@@ -1,4 +1,3 @@
-using InfiVR;
 using UnityEngine;
 
 public class HorizontalFollow : MonoBehaviour

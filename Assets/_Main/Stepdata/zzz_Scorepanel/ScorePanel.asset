@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
+  m_Name: ScorePanel
+  m_EditorClassIdentifier: 
+  stepSubtitle: Welcome to the SkillVerse - An Immersive VR-AR Training for Industry-Ready
+    Workforce
+  stepAudio: {fileID: 8300000, guid: c345b22653634c641838188426630c12, type: 3}
+  stepSubtitle2: We aim to create immersive Virtual Reality (VR) and Augmented Reality
+    (AR) training modules to address the skills gap in vocational education.
+  stepAudio2: {fileID: 8300000, guid: c06839a1eb6bff7429a26fb6cad53341, type: 3}
+  helpText: Point the controller at "Start the Experience" button and press the trigger
+    to proceed.
+  helpAudio: {fileID: 8300000, guid: 8d990765db67a764ab7a4f0fcb8d6cd5, type: 3}
+  completionText: Well done!
+  completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
+  completionType: 2
+  helpDelay: 30
+  CorrectIcon: 1
+  prefab: {fileID: 151174433986318599, guid: c1d45ec7530bc04439d838dcf34b6544, type: 3}

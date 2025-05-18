@@ -15,6 +15,7 @@ public class StageManager : MonoBehaviour
     public GameObject User;
 
     public int currentStepIndex = 0;
+    private int completedStepIndex = 0;
     
     public StageSO[] StageSOs; // Assign in Inspector
     public Stages[] Stages; // Gameobjects for each step
@@ -25,6 +26,10 @@ public class StageManager : MonoBehaviour
 
     public bool EditorShortcut = false;
     private bool CompletionLock = true;
+
+    public int AssessmentScore = 0;
+    public int TrainingScore = 0;
+
 
     [ReadOnly(true)]
     GameObject PanelTemp;
@@ -109,10 +114,14 @@ public class StageManager : MonoBehaviour
                     }
                 }));
 
-                Invoke(nameof(SecondSubtitle), currentStep.stepAudio.length);
-                
-                // Setup and Delay Help Text and Audio
-                Invoke(nameof(ShowHelp), currentStep.helpDelay);
+                if(currentStepIndex == completedStepIndex)
+                {
+                    Invoke(nameof(SecondSubtitle), currentStep.stepAudio.length);
+
+
+                    // Setup and Delay Help Text and Audio
+                    Invoke(nameof(ShowHelp), currentStep.helpDelay);
+                }
             }
         }
         else if (currentStepIndex >= (StageSOs?.Length ?? 0))
@@ -144,6 +153,11 @@ public class StageManager : MonoBehaviour
                 if (subtitle != null) subtitle.text = currentStep.helpText;
                 PlayAudio(AudioHandler, currentStep.helpAudio);
             }
+        }
+
+        if (StageSOs[currentStepIndex].Score == true)
+        {
+            TrainingScore -= 10;
         }
     }
 
@@ -198,6 +212,7 @@ public class StageManager : MonoBehaviour
     [ContextMenu("CompleteStep")]
     public void StepCompleted() // Call this from your code trigger if CompletionType is CodeTrigger
     {
+        completedStepIndex++;
         if (!CompletionLock && Stages != null && currentStepIndex < Stages.Length)
         {
             isStepCompleted = true;
