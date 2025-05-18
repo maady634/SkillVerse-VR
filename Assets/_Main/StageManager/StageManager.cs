@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.InputSystem;
 using System.ComponentModel;
+using UnityEngine.SceneManagement;
 
 public class StageManager : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class StageManager : MonoBehaviour
 
     public TextMeshProUGUI subtitle;
     public AudioSource AudioHandler;
+    public Image FadeImage;
 
     public GameObject User;
 
@@ -281,5 +283,34 @@ public class StageManager : MonoBehaviour
         {
             _CorrectIcon.SetActive(false);
         }
+    }
+
+    public void ReloadScene()
+    {
+        StartCoroutine(FadeAndReload());
+    }
+
+    private IEnumerator FadeAndReload()
+    {
+        float duration = 0.5f; // fade-in duration
+        float t = 0f;
+
+        Color startColor = FadeImage.color;
+        Color endColor = new Color(startColor.r, startColor.g, startColor.b, 1f); // fully opaque
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float normalizedTime = Mathf.Clamp01(t / duration);
+            FadeImage.color = Color.Lerp(startColor, endColor, normalizedTime);
+            yield return null;
+        }
+
+        // Fully opaque
+        FadeImage.color = endColor;
+
+        // Reload scene
+        Scene currentScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(currentScene.name);
     }
 }

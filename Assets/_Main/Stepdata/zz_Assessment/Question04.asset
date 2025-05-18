@@ -26,4 +26,5 @@ MonoBehaviour:
   completionType: 2
   helpDelay: 30
   CorrectIcon: 1
+  Score: 0
   prefab: {fileID: 151174433986318599, guid: a7ae81d967a256d4296c5f7219b2a338, type: 3}

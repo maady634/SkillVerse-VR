@@ -17084,6 +17084,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   subtitle: {fileID: 52597757100805051}
   AudioHandler: {fileID: 6268411728679412533}
+  FadeImage: {fileID: 288386980611577462}
   User: {fileID: 5790705781270879840}
   currentStepIndex: 0
   StageSOs:
@@ -61191,7 +61192,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 182ed0c6d2ea164409059ac23d406882, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a0a2463d3c1b0c340bb1ac2df8449497, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -67991,8 +67992,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 30, y: 30}
+  m_AnchoredPosition: {x: 0, y: 0.36}
+  m_SizeDelta: {x: 33.751, y: 33.751}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!4 &7962959259934579777
 Transform:

@@ -18,6 +18,9 @@ public class ScoreCard : MonoBehaviour
     [SerializeField]
     Slider AssessmentSlider;
 
+    [SerializeField]
+    Button RetryButton;
+
     private void OnEnable()
     {
         int assScore = StageManager.Instance.AssessmentScore;
@@ -30,6 +33,8 @@ public class ScoreCard : MonoBehaviour
         TrainingScoreText.text = trainScore.ToString() + " %";
 
         // Invert value since slider visually behaves backwards
-        TrainingSlider.value = 1f - (trainScore / 100f);
+        TrainingSlider.value = 1f - (trainScore / 110f);
+
+        RetryButton.onClick.AddListener(StageManager.Instance.ReloadScene);
     }
 }
