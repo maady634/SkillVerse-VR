@@ -14,9 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stepSubtitle: What should you do before approaching a pallet with the forklift?
   stepAudio: {fileID: 8300000, guid: a3a3e76aaab02ff40bb3eab7397e0ce3, type: 3}
-  stepSubtitle2: We aim to create immersive Virtual Reality (VR) and Augmented Reality
-    (AR) training modules to address the skills gap in vocational education.
-  stepAudio2: {fileID: 8300000, guid: c06839a1eb6bff7429a26fb6cad53341, type: 3}
+  stepSubtitle2: 
+  stepAudio2: {fileID: 0}
   helpText: Point at the correct answer, click to select it, then press the Submit
     button.
   helpAudio: {fileID: 8300000, guid: 2145922607eb0c245887ccceb77da529, type: 3}

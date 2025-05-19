@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
+  m_Name: zAIstep
+  m_EditorClassIdentifier: 
+  stepSubtitle: 
+  stepAudio: {fileID: 0}
+  stepSubtitle2: 
+  stepAudio2: {fileID: 0}
+  helpText: 
+  helpAudio: {fileID: 0}
+  completionText: 
+  completionAudio: {fileID: 8300000, guid: 29cd1fecb11018d4f84a534737efbbe8, type: 3}
+  completionType: 2
+  helpDelay: 30
+  CorrectIcon: 0
+  Score: 0
+  prefab: {fileID: 151174433986318599, guid: cd35879bc4597c64aaeab3341635daac, type: 3}

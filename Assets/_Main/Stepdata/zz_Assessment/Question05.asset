@@ -12,12 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
   m_Name: Question05
   m_EditorClassIdentifier: 
-  stepSubtitle: Welcome to the SkillVerse - An Immersive VR-AR Training for Industry-Ready
-    Workforce
-  stepAudio: {fileID: 8300000, guid: c345b22653634c641838188426630c12, type: 3}
-  stepSubtitle2: We aim to create immersive Virtual Reality (VR) and Augmented Reality
-    (AR) training modules to address the skills gap in vocational education.
-  stepAudio2: {fileID: 8300000, guid: c06839a1eb6bff7429a26fb6cad53341, type: 3}
+  stepSubtitle: What is the purpose of tilting the mast slightly backward while traveling
+    with a load?
+  stepAudio: {fileID: 8300000, guid: d8ecc32b4ea1ca6449173c5661284d4b, type: 3}
+  stepSubtitle2: 
+  stepAudio2: {fileID: 0}
   helpText: Point at the correct answer, click to select it, then press the Submit
     button.
   helpAudio: {fileID: 8300000, guid: 2145922607eb0c245887ccceb77da529, type: 3}

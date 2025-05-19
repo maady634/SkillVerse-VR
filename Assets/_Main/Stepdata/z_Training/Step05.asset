@@ -19,7 +19,7 @@ MonoBehaviour:
   helpText: 
   helpAudio: {fileID: 0}
   completionText: 
-  completionAudio: {fileID: 0}
+  completionAudio: {fileID: 8300000, guid: 29cd1fecb11018d4f84a534737efbbe8, type: 3}
   completionType: 1
   helpDelay: 30
   CorrectIcon: 0

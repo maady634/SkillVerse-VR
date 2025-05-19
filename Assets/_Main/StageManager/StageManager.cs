@@ -17,7 +17,7 @@ public class StageManager : MonoBehaviour
     public GameObject User;
 
     public int currentStepIndex = 0;
-    private int completedStepIndex = 0;
+    public int completedStepIndex = 0;
     
     public StageSO[] StageSOs; // Assign in Inspector
     public Stages[] Stages; // Gameobjects for each step
@@ -62,7 +62,7 @@ public class StageManager : MonoBehaviour
 
     private void Update()
     {
-        if (!EditorShortcut)
+        /*if (!EditorShortcut)
         {
             return;
         }
@@ -74,7 +74,7 @@ public class StageManager : MonoBehaviour
                 CompletionLock = true;
                 Debug.Log("Force Complete step!");
             }
-        }
+        }*/
     }
     
     public void StartNextStep()
@@ -118,11 +118,16 @@ public class StageManager : MonoBehaviour
 
                 if(currentStepIndex == completedStepIndex)
                 {
-                    Invoke(nameof(SecondSubtitle), currentStep.stepAudio.length);
+                    if(currentStep.stepAudio2 != null)
+                    {
+                        Invoke(nameof(SecondSubtitle), currentStep.stepAudio.length);
+                    }
 
-
-                    // Setup and Delay Help Text and Audio
-                    Invoke(nameof(ShowHelp), currentStep.helpDelay);
+                    if(currentStep.helpAudio != null)
+                    {
+                        // Setup and Delay Help Text and Audio
+                        Invoke(nameof(ShowHelp), currentStep.helpDelay);
+                    }
                 }
             }
         }
@@ -239,7 +244,11 @@ public class StageManager : MonoBehaviour
                 Stages currentStage = Stages[currentStepIndex];
                 StageSO currentStep = StageSOs[currentStepIndex];
 
-                Invoke(nameof(StartNextStep), currentStep.completionAudio.length + (currentStage?.StepCompletionTime ?? 0));
+                if(currentStep.completionAudio != null)
+                {
+                    Invoke(nameof(StartNextStep), currentStep.completionAudio.length + (currentStage?.StepCompletionTime ?? 0));
+                }
+                
             }
             Debug.Log("Step Completed :" + currentStepIndex);
             CompletionLock = true;
@@ -254,6 +263,11 @@ public class StageManager : MonoBehaviour
             Stages[currentStepIndex]?.EndEvent?.Invoke();
             //CorrectIcon();
             currentStepIndex = index;
+
+            if (PanelTemp != null)
+            {
+                Destroy(PanelTemp);
+            }
 
             if (currentStepIndex < Stages.Length)
             {
