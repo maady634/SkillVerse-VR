@@ -14,14 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stepSubtitle: Follow the G-O-B-O procedure to move off. Handbrake release and final
     Observation (GOBO).
-  stepAudio: {fileID: 8300000, guid: ce48cba72e4a27a47b962c4bd79df08e, type: 3}
+  stepAudio: {fileID: 8300000, guid: 519f4837fce5dbd4199d4cd7d4c60849, type: 3}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
-  helpText: Grab the hand brake and check around you.
-  helpAudio: {fileID: 8300000, guid: 88f2d3a995069184ead2f4a54f11e94a, type: 3}
+  helpText: Grab the hand brake using your controllers.
+  helpAudio: {fileID: 8300000, guid: 6292d4f383bf87c4aa18e3d7be559b08, type: 3}
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 1
   helpDelay: 30
   CorrectIcon: 1
+  Score: 1
   prefab: {fileID: 0}

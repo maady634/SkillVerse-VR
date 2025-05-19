@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
   m_Name: Step07
   m_EditorClassIdentifier: 
-  stepSubtitle: Follow the G-O-B-O procedure to move off. Handbrake release and final
-    Observation (GOBO).
-  stepAudio: {fileID: 8300000, guid: ce48cba72e4a27a47b962c4bd79df08e, type: 3}
+  stepSubtitle: Grab the highlighted gear lever and pull it to lift the stack.
+  stepAudio: {fileID: 8300000, guid: ed8994e92b217f34dbbe98b96ab9efee, type: 3}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
-  helpText: Grab the hand brake and check around you.
-  helpAudio: {fileID: 8300000, guid: 88f2d3a995069184ead2f4a54f11e94a, type: 3}
+  helpText: Grab the highlighted gear lever and pull it to lift the stack.
+  helpAudio: {fileID: 8300000, guid: ed8994e92b217f34dbbe98b96ab9efee, type: 3}
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 1
   helpDelay: 30
   CorrectIcon: 1
+  Score: 1
   prefab: {fileID: 0}

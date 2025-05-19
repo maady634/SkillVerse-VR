@@ -12,15 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
   m_Name: Question01
   m_EditorClassIdentifier: 
-  stepSubtitle: Welcome to the SkillVerse - An Immersive VR-AR Training for Industry-Ready
-    Workforce
-  stepAudio: {fileID: 8300000, guid: c345b22653634c641838188426630c12, type: 3}
+  stepSubtitle: What should you do before approaching a pallet with the forklift?
+  stepAudio: {fileID: 8300000, guid: a3a3e76aaab02ff40bb3eab7397e0ce3, type: 3}
   stepSubtitle2: We aim to create immersive Virtual Reality (VR) and Augmented Reality
     (AR) training modules to address the skills gap in vocational education.
   stepAudio2: {fileID: 8300000, guid: c06839a1eb6bff7429a26fb6cad53341, type: 3}
-  helpText: Point the controller at "Start the Experience" button and press the trigger
-    to proceed.
-  helpAudio: {fileID: 8300000, guid: 8d990765db67a764ab7a4f0fcb8d6cd5, type: 3}
+  helpText: Point at the correct answer, click to select it, then press the Submit
+    button.
+  helpAudio: {fileID: 8300000, guid: 2145922607eb0c245887ccceb77da529, type: 3}
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 2

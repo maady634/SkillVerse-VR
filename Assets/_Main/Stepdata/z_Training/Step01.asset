@@ -13,14 +13,15 @@ MonoBehaviour:
   m_Name: Step01
   m_EditorClassIdentifier: 
   stepSubtitle: Follow the G-O-B-O procedure to move off. Gear and Observation.
-  stepAudio: {fileID: 8300000, guid: ce48cba72e4a27a47b962c4bd79df08e, type: 3}
+  stepAudio: {fileID: 8300000, guid: 8c8f8042b478f124ab60842e6b6272ee, type: 3}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
   helpText: Grab the gear lever and observe around you.
-  helpAudio: {fileID: 8300000, guid: 88f2d3a995069184ead2f4a54f11e94a, type: 3}
+  helpAudio: {fileID: 8300000, guid: 38c5990f6840d98449d2da27f0a2e578, type: 3}
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 1
   helpDelay: 30
   CorrectIcon: 1
+  Score: 1
   prefab: {fileID: 0}
