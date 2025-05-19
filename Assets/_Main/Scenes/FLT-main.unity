@@ -17334,8 +17334,8 @@ MonoBehaviour:
   _CorrectIcon: {fileID: 8293042246915058209}
   _CorrectAudio: {fileID: 8300000, guid: 605c21851e5616040805e9f0666cd369, type: 3}
   EditorShortcut: 0
-  AssessmentScore: 0
-  TrainingScore: 110
+  AssessmentScore: 50
+  TrainingScore: 80
 --- !u!4 &550955114
 Transform:
   m_ObjectHideFlags: 0
