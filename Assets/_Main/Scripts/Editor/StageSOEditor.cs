@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 [CustomEditor(typeof(StageSO))]
 public class StageSOEditor : Editor
 {
-    private const string TTS_URL = "http://localhost:5000/tts";
+    private const string TTS_URL = "http://127.0.0.1:5000/tts";
 
     public override void OnInspectorGUI()
     {
@@ -20,6 +20,8 @@ public class StageSOEditor : Editor
         if (GUILayout.Button("Generate Audios (Chatterbox)"))
         {
             StageSO stage = (StageSO)target;
+            Debug.Log($"[StageSO TTS] ▶ Button clicked for Stage: {stage.name}");
+
             EditorCoroutineUtility.StartCoroutineOwnerless(
                 GenerateAllAudios(stage)
             );
@@ -31,26 +33,31 @@ public class StageSOEditor : Editor
         string baseDir = $"Assets/GeneratedAudio/StageSO/{stage.name}";
         Directory.CreateDirectory(baseDir);
 
-        // Each text → its target AudioClip setter
+        Debug.Log($"[StageSO TTS] Output directory: {baseDir}");
+
         yield return GenerateAndAssign(
+            "StepAudio",
             stage.stepSubtitle,
             baseDir + "/StepAudio.wav",
             clip => stage.stepAudio = clip
         );
 
         yield return GenerateAndAssign(
+            "StepAudio2",
             stage.stepSubtitle2,
             baseDir + "/StepAudio2.wav",
             clip => stage.stepAudio2 = clip
         );
 
         yield return GenerateAndAssign(
+            "HelpAudio",
             stage.helpText,
             baseDir + "/HelpAudio.wav",
             clip => stage.helpAudio = clip
         );
 
         yield return GenerateAndAssign(
+            "CompletionAudio",
             stage.completionText,
             baseDir + "/CompletionAudio.wav",
             clip => stage.completionAudio = clip
@@ -59,21 +66,26 @@ public class StageSOEditor : Editor
         EditorUtility.SetDirty(stage);
         AssetDatabase.SaveAssets();
 
-        Debug.Log($"[StageSO] Audio generation complete for {stage.name}");
+        Debug.Log($"[StageSO TTS] ✅ All audio generation COMPLETE for {stage.name}");
     }
 
     private IEnumerator GenerateAndAssign(
+        string label,
         string text,
         string assetPath,
         System.Action<AudioClip> assignClip
     )
     {
         if (string.IsNullOrWhiteSpace(text))
+        {
+            Debug.LogWarning($"[StageSO TTS] ⚠ {label} skipped (empty text)");
             yield break;
+        }
 
-        string json =
-            "{\"text\":\"" + text.Replace("\"", "\\\"") + "\"}";
+        Debug.Log($"[StageSO TTS] 🔊 Generating {label}...");
+        Debug.Log($"[StageSO TTS] Text: \"{text}\"");
 
+        string json = "{\"text\":\"" + text.Replace("\"", "\\\"") + "\"}";
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
 
         using (UnityWebRequest req = new UnityWebRequest(TTS_URL, "POST"))
@@ -82,26 +94,34 @@ public class StageSOEditor : Editor
             req.downloadHandler = new DownloadHandlerBuffer();
             req.SetRequestHeader("Content-Type", "application/json");
 
+            Debug.Log($"[StageSO TTS] 📡 Sending request to Chatterbox...");
+
             yield return req.SendWebRequest();
 
             if (req.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogError("Chatterbox TTS failed: " + req.error);
+                Debug.LogError($"[StageSO TTS] ❌ {label} request failed: {req.error}");
                 yield break;
             }
 
+            Debug.Log($"[StageSO TTS] 📥 Audio received ({req.downloadHandler.data.Length} bytes)");
+
             File.WriteAllBytes(assetPath, req.downloadHandler.data);
+            Debug.Log($"[StageSO TTS] 💾 Saved WAV → {assetPath}");
         }
 
-        AssetDatabase.ImportAsset(assetPath);
-        AssetDatabase.Refresh();
+        AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
 
-        AudioClip clip =
-            AssetDatabase.LoadAssetAtPath<AudioClip>(assetPath);
+        AudioClip clip = AssetDatabase.LoadAssetAtPath<AudioClip>(assetPath);
 
         if (clip != null)
+        {
             assignClip(clip);
+            Debug.Log($"[StageSO TTS] ✅ {label} imported & assigned");
+        }
         else
-            Debug.LogError("Failed to import AudioClip: " + assetPath);
+        {
+            Debug.LogError($"[StageSO TTS] ❌ Failed to import AudioClip: {assetPath}");
+        }
     }
 }
