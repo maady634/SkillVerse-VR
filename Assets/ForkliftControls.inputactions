@@ -1,0 +1,255 @@
+{
+    "version": 1,
+    "name": "ForkliftControls",
+    "maps": [
+        {
+            "name": "Driving",
+            "id": "df80b959-2992-461b-89ef-eb6b4d8800ce",
+            "actions": [
+                {
+                    "name": "Steer",
+                    "type": "Value",
+                    "id": "ec8e94aa-ec0c-41c0-9a22-fe972851f2ed",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Throttle",
+                    "type": "Value",
+                    "id": "8e2f1c5d-b087-45dc-be42-6688d1f1d081",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Brake1",
+                    "type": "Value",
+                    "id": "6195e220-9026-4edc-ab49-ee6d2a47d220",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Brake2",
+                    "type": "Value",
+                    "id": "a6ded206-28de-45c1-a052-082f64c50c47",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "GearUp",
+                    "type": "Button",
+                    "id": "ab442fca-1e28-4d9b-baf7-5403630b3909",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "GearDown",
+                    "type": "Button",
+                    "id": "ac1b06c4-25a1-4900-a755-5a4d4d518006",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "HolderUp",
+                    "type": "Button",
+                    "id": "fafa7fc8-21ba-47ee-a052-b3da6bfb4714",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "HolderDown",
+                    "type": "Button",
+                    "id": "66ac3361-04bc-4432-8532-20abb7499f48",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "HolderLeft",
+                    "type": "Button",
+                    "id": "1a828814-2a1a-44bd-9e74-4f81526d00d3",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "HolderRight",
+                    "type": "Button",
+                    "id": "5d3e470c-81ce-4092-ac7d-2ed9516ec1f0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "TiltForward",
+                    "type": "Button",
+                    "id": "49a2b354-f2ab-4fa4-9af4-1e08d1277b36",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "TiltBackward",
+                    "type": "Button",
+                    "id": "fce82482-c690-485c-9654-38001db2d350",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "4d4b3009-e8e3-4d3d-8c36-8bd307ec083f",
+                    "path": "<HID::Logitech G29 Driving Force Racing Wheel>/stick/x",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Steer",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "aa4fcf99-0150-4765-a781-cf388d57603a",
+                    "path": "<HID::Logitech G29 Driving Force Racing Wheel>/z",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Throttle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8088fdc7-7bb3-4566-82e0-374e725f45ce",
+                    "path": "<HID::Logitech G29 Driving Force Racing Wheel>/rz",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Brake1",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "64f0772b-0321-47f7-a6ef-d11d08e89ac5",
+                    "path": "<HID::Logitech G29 Driving Force Racing Wheel>/stick/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Brake2",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d777ca29-5073-4265-853e-cf1b05cd2752",
+                    "path": "<HID::Logitech G29 Driving Force Racing Wheel>/button15",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "GearUp",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "cbece65d-6dfe-4d30-8094-222899683767",
+                    "path": "<HID::Logitech G29 Driving Force Racing Wheel>/button16",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "GearDown",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "988d71d1-73ff-4ef9-abe8-076181972f3c",
+                    "path": "<HID::Logitech G29 Driving Force Racing Wheel>/button4",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "HolderUp",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8530e160-e5bc-477a-bca2-153e91ec7952",
+                    "path": "<HID::Logitech G29 Driving Force Racing Wheel>/trigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "HolderDown",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e14be3bb-2c0e-4f2b-9b1c-d7e8f8c3e3fc",
+                    "path": "<HID::Logitech G29 Driving Force Racing Wheel>/button2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "HolderLeft",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6dd5ed8b-80cf-4fed-8383-15103bed6972",
+                    "path": "<HID::Logitech G29 Driving Force Racing Wheel>/button3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "HolderRight",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5f8522a7-7d64-4007-9675-50b5ebeb7b26",
+                    "path": "<HID::Logitech G29 Driving Force Racing Wheel>/button20",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TiltForward",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "eab48aa2-b35e-4619-bacc-2229ce08c999",
+                    "path": "<HID::Logitech G29 Driving Force Racing Wheel>/button21",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TiltBackward",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
