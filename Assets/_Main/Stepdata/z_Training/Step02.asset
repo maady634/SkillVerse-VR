@@ -22,7 +22,7 @@ MonoBehaviour:
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: 6095152ad26e3ac45a29f1357b2edcb1, type: 3}
   completionType: 1
-  helpDelay: 15
+  helpDelay: 30
   CorrectIcon: 1
   Score: 1
   prefab: {fileID: 0}

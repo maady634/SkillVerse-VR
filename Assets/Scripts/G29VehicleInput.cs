@@ -9,6 +9,7 @@ using static Logitech.LogitechGSDK;
 /// - UnityEvents for input Pressed/Held/Released
 /// - Guided tutorial gate: locks other inputs and enforces expected input with hold-time
 /// - Public API: StartTutorialStep(...), StopTutorial(), EnableEvents(bool)
+/// - Extensive debug logging added (toggle with enableDebugLogs)
 /// </summary>
 public enum ExpectedInputType
 {
@@ -20,9 +21,7 @@ public enum ExpectedInputType
     GearForward,
     GearReverse,
 
-
-
-        MastUp,
+    MastUp,
     MastDown,
     TiltUp,
     TiltDown
@@ -30,6 +29,24 @@ public enum ExpectedInputType
 
 public class G29VehicleInput : MonoBehaviour
 {
+    // ================= DEBUG =================
+    [Header("Debug")]
+    public bool enableDebugLogs = true;
+    [Tooltip("If true, logs fastest path checks (high volume). Turn off for release.")]
+    public bool enableVerboseEventLogs = false;
+
+    void LogDebug(string msg)
+    {
+        if (enableDebugLogs)
+            Debug.Log("[G29VehicleInput] " + msg);
+    }
+
+    void LogVerbose(string msg)
+    {
+        if (enableDebugLogs && enableVerboseEventLogs)
+            Debug.Log("[G29VehicleInput - VERBOSE] " + msg);
+    }
+
     // ================= PUBLIC READ =================
 
     [Header("External Controllers")]
@@ -51,11 +68,13 @@ public class G29VehicleInput : MonoBehaviour
     public float currentLoadKg = 0f;
     public float maxLoadKg = 2000f;
 
+    bool tutorialStepAlreadyCompleted = false;
+
     // expose raw mast/tilt inputs so other systems (ForkliftHolderController) read them
     // G29VehicleInput will zero these when the guided gate blocks mast/tilt.
-    
     public float MastRawInput { get; private set; } = 0f; // -1 down, 0 neutral, +1 up
     public float TiltRawInput { get; private set; } = 0f; // -1 tilt down, +1 tilt up
+
     // ================= WHEELS =================
     [Header("Wheel Colliders")]
     public WheelCollider driveLeft;
@@ -184,12 +203,17 @@ public class G29VehicleInput : MonoBehaviour
     {
         if (rb && baseCenterOfMass)
             rb.centerOfMass = baseCenterOfMass.localPosition;
+
+        LogDebug("Start(): ready. guidedGateEnabled=" + guidedGateEnabled);
     }
 
     void Update()
     {
         if (G29Manager.Instance == null || !G29Manager.Instance.Ready)
+        {
+            LogVerbose("G29Manager not ready");
             return;
+        }
 
         ReadG29_Raw();
 
@@ -236,6 +260,8 @@ public class G29VehicleInput : MonoBehaviour
         throttleInput = rawThrottleInput;
         brakeInput = rawBrakeInput;
         steerInput = rawSteerInput;
+
+        LogVerbose($"Raw inputs -> Throttle:{rawThrottleInput:F2} Brake:{rawBrakeInput:F2} Steer:{rawSteerInput:F2} Gear:{gearState} Mast:{MastRawInput} Tilt:{TiltRawInput}");
     }
 
     // ================= CORE PHYSICS =================
@@ -252,16 +278,16 @@ public class G29VehicleInput : MonoBehaviour
             steerSpeed * Time.fixedDeltaTime
         );
 
-        steerLeft.steerAngle = targetSteer;
-        steerRight.steerAngle = targetSteer;
+        if (steerLeft != null) steerLeft.steerAngle = targetSteer;
+        if (steerRight != null) steerRight.steerAngle = targetSteer;
 
         // ---------- Acceleration (inertia) ----------
         float inertiaMultiplier = Mathf.Lerp(1f, 0.4f, loadRatio);
         float effectiveMotorForce = motorForce * inertiaMultiplier;
 
         float torque = -throttleInput * effectiveMotorForce * gearState;
-        driveLeft.motorTorque = torque;
-        driveRight.motorTorque = torque;
+        if (driveLeft != null) driveLeft.motorTorque = torque;
+        if (driveRight != null) driveRight.motorTorque = torque;
 
         if (!driveEnabled)
         {
@@ -274,8 +300,8 @@ public class G29VehicleInput : MonoBehaviour
         float effectiveBrakeForce = brakeForce * Mathf.Lerp(1f, 1.35f, loadRatio);
 
         float brakes = brakeInput * effectiveBrakeForce;
-        driveLeft.brakeTorque = brakes;
-        driveRight.brakeTorque = brakes;
+        if (driveLeft != null) driveLeft.brakeTorque = brakes;
+        if (driveRight != null) driveRight.brakeTorque = brakes;
 
         // enforce optional speed limit
         if (speedLimit > 0f && rb)
@@ -284,8 +310,8 @@ public class G29VehicleInput : MonoBehaviour
             if (speed > speedLimit)
             {
                 // simple dampening: reduce motor torque when above limit
-                driveLeft.motorTorque *= 0f;
-                driveRight.motorTorque *= 0f;
+                if (driveLeft != null) driveLeft.motorTorque *= 0f;
+                if (driveRight != null) driveRight.motorTorque *= 0f;
             }
         }
     }
@@ -348,11 +374,13 @@ public class G29VehicleInput : MonoBehaviour
     public void SetDriveEnabled(bool value)
     {
         driveEnabled = value;
+        LogDebug("SetDriveEnabled: " + value);
     }
 
     public void SetSpeedLimit(float maxSpeed)
     {
         speedLimit = maxSpeed;
+        LogDebug("SetSpeedLimit: " + maxSpeed);
     }
 
     // ================= UNITYEVENTS LOGIC =================
@@ -362,6 +390,8 @@ public class G29VehicleInput : MonoBehaviour
 
         float now = Time.time;
 
+        LogVerbose($"HandleUnityEvents start - expectedInput={expectedInput} tutorialActive={tutorialActive}");
+
         // Accelerator events
         bool accelNow = rawThrottleInput > pedalPressThreshold;
         if (accelNow && !accelPressedState && now - accelLastFiredTimestamp >= eventCooldown)
@@ -369,6 +399,7 @@ public class G29VehicleInput : MonoBehaviour
             accelPressedState = true;
             accelPressTimestamp = now;
             accelLastFiredTimestamp = now;
+            LogDebug("OnAcceleratorPressed invoked");
             OnAcceleratorPressed?.Invoke();
             CompleteAccelerator_Step();
         }
@@ -376,11 +407,13 @@ public class G29VehicleInput : MonoBehaviour
         {
             accelPressedState = false;
             accelHeldState = false;
+            LogVerbose("OnAcceleratorReleased invoked");
             OnAcceleratorReleased?.Invoke();
         }
         if (accelPressedState && !accelHeldState && now - accelPressTimestamp >= holdTime)
         {
             accelHeldState = true;
+            LogVerbose("OnAcceleratorHeld invoked");
             OnAcceleratorHeld?.Invoke();
             accelLastFiredTimestamp = now;
         }
@@ -392,6 +425,7 @@ public class G29VehicleInput : MonoBehaviour
             brakePressedState = true;
             brakePressTimestamp = now;
             brakeLastFiredTimestamp = now;
+            LogDebug("OnBrakePressed invoked");
             OnBrakePressed?.Invoke();
             CompleteBrake_Step();
         }
@@ -399,11 +433,13 @@ public class G29VehicleInput : MonoBehaviour
         {
             brakePressedState = false;
             brakeHeldState = false;
+            LogVerbose("OnBrakeReleased invoked");
             OnBrakeReleased?.Invoke();
         }
         if (brakePressedState && !brakeHeldState && now - brakePressTimestamp >= holdTime)
         {
             brakeHeldState = true;
+            LogVerbose("OnBrakeHeld invoked");
             OnBrakeHeld?.Invoke();
             brakeLastFiredTimestamp = now;
         }
@@ -415,6 +451,7 @@ public class G29VehicleInput : MonoBehaviour
             steerLeftPressedState = true;
             steerLeftPressTimestamp = now;
             steerLeftLastFiredTimestamp = now;
+            LogDebug("OnSteeringLeftPressed invoked");
             OnSteeringLeftPressed?.Invoke();
             CompleteSteerLeft_Step();
         }
@@ -422,11 +459,13 @@ public class G29VehicleInput : MonoBehaviour
         {
             steerLeftPressedState = false;
             steerLeftHeldState = false;
+            LogVerbose("OnSteeringLeftReleased invoked");
             OnSteeringLeftReleased?.Invoke();
         }
         if (steerLeftPressedState && !steerLeftHeldState && now - steerLeftPressTimestamp >= holdTime)
         {
             steerLeftHeldState = true;
+            LogVerbose("OnSteeringLeftHeld invoked");
             OnSteeringLeftHeld?.Invoke();
             steerLeftLastFiredTimestamp = now;
         }
@@ -438,6 +477,7 @@ public class G29VehicleInput : MonoBehaviour
             steerRightPressedState = true;
             steerRightPressTimestamp = now;
             steerRightLastFiredTimestamp = now;
+            LogDebug("OnSteeringRightPressed invoked");
             OnSteeringRightPressed?.Invoke();
             CompleteSteerRight_Step();
         }
@@ -445,11 +485,13 @@ public class G29VehicleInput : MonoBehaviour
         {
             steerRightPressedState = false;
             steerRightHeldState = false;
+            LogVerbose("OnSteeringRightReleased invoked");
             OnSteeringRightReleased?.Invoke();
         }
         if (steerRightPressedState && !steerRightHeldState && now - steerRightPressTimestamp >= holdTime)
         {
             steerRightHeldState = true;
+            LogVerbose("OnSteeringRightHeld invoked");
             OnSteeringRightHeld?.Invoke();
             steerRightLastFiredTimestamp = now;
         }
@@ -460,12 +502,14 @@ public class G29VehicleInput : MonoBehaviour
         {
             gearFwdState = true;
             gearFwdLastFiredTimestamp = now;
+            LogDebug("OnGearForwardPressed invoked");
             OnGearForwardPressed?.Invoke();
             CompleteGearForward_Step();
         }
         if (gearFwdState && !gearFwdNow)
         {
             gearFwdState = false;
+            LogVerbose("OnGearForwardReleased invoked");
             OnGearForwardReleased?.Invoke();
             gearFwdLastFiredTimestamp = now;
         }
@@ -475,39 +519,77 @@ public class G29VehicleInput : MonoBehaviour
         {
             gearRevState = true;
             gearRevLastFiredTimestamp = now;
+            LogDebug("OnGearReversePressed invoked");
             OnGearReversePressed?.Invoke();
             CompleteGearReverse_Step();
         }
         if (gearRevState && !gearRevNow)
         {
             gearRevState = false;
+            LogVerbose("OnGearReverseReleased invoked");
             OnGearReverseReleased?.Invoke();
             gearRevLastFiredTimestamp = now;
         }
-        // Mast Up
+
+        // Mast / Tilt quick checks (these are high-frequency; verbose-only recommended)
         bool mastUpNow = MastRawInput > 0.5f;
-        if (mastUpNow && expectedInput == ExpectedInputType.MastUp)
+        if (mastUpNow)
         {
-            CompleteMastUp_Step();
+            LogVerbose("MastUp detected (MastRawInput=" + MastRawInput + ")");
+            if (expectedInput == ExpectedInputType.MastUp && tutorialActive)
+            {
+                LogDebug("MastUp matches expected -> CompleteMastUp_Step()");
+                CompleteMastUp_Step();
+            }
+            else
+            {
+                LogVerbose("MastUp pressed but not expected (expected=" + expectedInput + ")");
+            }
         }
 
-        // Mast Down
         bool mastDownNow = MastRawInput < -0.5f;
-        if (mastDownNow && expectedInput == ExpectedInputType.MastDown)
+        if (mastDownNow)
         {
-            CompleteMastDown_Step();
-        }
-        bool tiltUpNow = TiltRawInput > 0.5f;
-        if (tiltUpNow && expectedInput == ExpectedInputType.TiltUp)
-        {
-            CompleteTiltUp_Step();
+            LogVerbose("MastDown detected (MastRawInput=" + MastRawInput + ")");
+            if (expectedInput == ExpectedInputType.MastDown && tutorialActive)
+            {
+                LogDebug("MastDown matches expected -> CompleteMastDown_Step()");
+                CompleteMastDown_Step();
+            }
+            else
+            {
+                LogVerbose("MastDown pressed but not expected (expected=" + expectedInput + ")");
+            }
         }
 
-        // Tilt Down
-        bool tiltDownNow = TiltRawInput < -0.5f;
-        if (tiltDownNow && expectedInput == ExpectedInputType.TiltDown)
+        bool tiltUpNow = TiltRawInput > 0.5f;
+        if (tiltUpNow)
         {
-            CompleteTiltDown_Step();
+            LogVerbose("TiltUp detected (TiltRawInput=" + TiltRawInput + ")");
+            if (expectedInput == ExpectedInputType.TiltUp && tutorialActive)
+            {
+                LogDebug("TiltUp matches expected -> CompleteTiltUp_Step()");
+                CompleteTiltUp_Step();
+            }
+            else
+            {
+                LogVerbose("TiltUp pressed but not expected (expected=" + expectedInput + ")");
+            }
+        }
+
+        bool tiltDownNow = TiltRawInput < -0.5f;
+        if (tiltDownNow)
+        {
+            LogVerbose("TiltDown detected (TiltRawInput=" + TiltRawInput + ")");
+            if (expectedInput == ExpectedInputType.TiltDown && tutorialActive)
+            {
+                LogDebug("TiltDown matches expected -> CompleteTiltDown_Step()");
+                CompleteTiltDown_Step();
+            }
+            else
+            {
+                LogVerbose("TiltDown pressed but not expected (expected=" + expectedInput + ")");
+            }
         }
     }
 
@@ -520,6 +602,14 @@ public class G29VehicleInput : MonoBehaviour
             throttleInput = rawThrottleInput;
             brakeInput = rawBrakeInput;
             steerInput = rawSteerInput;
+
+            // propagate mast/tilt raw to forkController (normal operation)
+            if (forkController != null)
+            {
+                forkController.MastInput = MastRawInput;
+                forkController.tiltInput = TiltRawInput;
+            }
+
             return;
         }
 
@@ -529,11 +619,20 @@ public class G29VehicleInput : MonoBehaviour
             throttleInput = rawThrottleInput;
             brakeInput = rawBrakeInput;
             steerInput = rawSteerInput;
+
+            if (forkController != null)
+            {
+                forkController.MastInput = MastRawInput;
+                forkController.tiltInput = TiltRawInput;
+            }
+
             return;
         }
 
         // tutorialActive -> enforce expected input, block others
         float tThreshold = gateInputThreshold > 0f ? gateInputThreshold : pedalPressThreshold;
+        LogVerbose($"HandleGuidedGate: expected={expectedInput} threshold={tThreshold} gateHoldTimer={gateHoldTimer:F2}");
+
         switch (expectedInput)
         {
             case ExpectedInputType.Accelerator:
@@ -541,7 +640,6 @@ public class G29VehicleInput : MonoBehaviour
                 {
                     gateHoldTimer += Time.deltaTime;
                     throttleInput = rawThrottleInput;
-                    // allow brake/steer only if they are also expected (not here)
                     steerInput = 0f;
                     brakeInput = 0f;
                 }
@@ -552,6 +650,8 @@ public class G29VehicleInput : MonoBehaviour
                     steerInput = 0f;
                     brakeInput = 0f;
                 }
+                // fork mast/tilt blocked
+                if (forkController != null) { forkController.MastInput = 0f; forkController.tiltInput = 0f; }
                 break;
 
             case ExpectedInputType.Brake:
@@ -569,6 +669,7 @@ public class G29VehicleInput : MonoBehaviour
                     steerInput = 0f;
                     brakeInput = 0f;
                 }
+                if (forkController != null) { forkController.MastInput = 0f; forkController.tiltInput = 0f; }
                 break;
 
             case ExpectedInputType.SteerLeft:
@@ -586,6 +687,7 @@ public class G29VehicleInput : MonoBehaviour
                     steerInput = 0f;
                     brakeInput = 0f;
                 }
+                if (forkController != null) { forkController.MastInput = 0f; forkController.tiltInput = 0f; }
                 break;
 
             case ExpectedInputType.SteerRight:
@@ -603,6 +705,7 @@ public class G29VehicleInput : MonoBehaviour
                     steerInput = 0f;
                     brakeInput = 0f;
                 }
+                if (forkController != null) { forkController.MastInput = 0f; forkController.tiltInput = 0f; }
                 break;
 
             case ExpectedInputType.GearForward:
@@ -621,6 +724,7 @@ public class G29VehicleInput : MonoBehaviour
                     steerInput = 0f;
                     brakeInput = 0f;
                 }
+                if (forkController != null) { forkController.MastInput = 0f; forkController.tiltInput = 0f; }
                 break;
 
             case ExpectedInputType.GearReverse:
@@ -638,15 +742,19 @@ public class G29VehicleInput : MonoBehaviour
                     steerInput = 0f;
                     brakeInput = 0f;
                 }
+                if (forkController != null) { forkController.MastInput = 0f; forkController.tiltInput = 0f; }
                 break;
+
             case ExpectedInputType.MastUp:
                 if (MastRawInput > tThreshold)
                 {
                     gateHoldTimer += Time.deltaTime;
-                    // allow only mast up — don't apply other controls to physics
                     throttleInput = 0f;
                     brakeInput = 0f;
                     steerInput = 0f;
+                    // allow mast only
+                    if (forkController != null)
+                        forkController.MastInput = MastRawInput;
                 }
                 else
                 {
@@ -654,7 +762,11 @@ public class G29VehicleInput : MonoBehaviour
                     throttleInput = 0f;
                     brakeInput = 0f;
                     steerInput = 0f;
+                    if (forkController != null)
+                        forkController.MastInput = 0f;
                 }
+                // tilt blocked
+                if (forkController != null) forkController.tiltInput = 0f;
                 break;
 
             case ExpectedInputType.MastDown:
@@ -664,6 +776,8 @@ public class G29VehicleInput : MonoBehaviour
                     throttleInput = 0f;
                     brakeInput = 0f;
                     steerInput = 0f;
+                    if (forkController != null)
+                        forkController.MastInput = MastRawInput;
                 }
                 else
                 {
@@ -671,7 +785,10 @@ public class G29VehicleInput : MonoBehaviour
                     throttleInput = 0f;
                     brakeInput = 0f;
                     steerInput = 0f;
+                    if (forkController != null)
+                        forkController.MastInput = 0f;
                 }
+                if (forkController != null) forkController.tiltInput = 0f;
                 break;
 
             case ExpectedInputType.TiltUp:
@@ -681,6 +798,8 @@ public class G29VehicleInput : MonoBehaviour
                     throttleInput = 0f;
                     brakeInput = 0f;
                     steerInput = 0f;
+                    if (forkController != null)
+                        forkController.tiltInput = TiltRawInput;
                 }
                 else
                 {
@@ -688,7 +807,10 @@ public class G29VehicleInput : MonoBehaviour
                     throttleInput = 0f;
                     brakeInput = 0f;
                     steerInput = 0f;
+                    if (forkController != null)
+                        forkController.tiltInput = 0f;
                 }
+                if (forkController != null) forkController.MastInput = 0f;
                 break;
 
             case ExpectedInputType.TiltDown:
@@ -698,6 +820,8 @@ public class G29VehicleInput : MonoBehaviour
                     throttleInput = 0f;
                     brakeInput = 0f;
                     steerInput = 0f;
+                    if (forkController != null)
+                        forkController.tiltInput = TiltRawInput;
                 }
                 else
                 {
@@ -705,7 +829,10 @@ public class G29VehicleInput : MonoBehaviour
                     throttleInput = 0f;
                     brakeInput = 0f;
                     steerInput = 0f;
+                    if (forkController != null)
+                        forkController.tiltInput = 0f;
                 }
+                if (forkController != null) forkController.MastInput = 0f;
                 break;
 
             case ExpectedInputType.None:
@@ -714,30 +841,62 @@ public class G29VehicleInput : MonoBehaviour
                 throttleInput = rawThrottleInput;
                 brakeInput = rawBrakeInput;
                 steerInput = rawSteerInput;
+                if (forkController != null)
+                {
+                    forkController.MastInput = MastRawInput;
+                    forkController.tiltInput = TiltRawInput;
+                }
                 break;
         }
 
-        // completion
+        // completion via hold-time
+        if (gateHoldTimer >= gateRequiredHoldTime)
+        {
+            LogDebug($"Gate hold complete for expected={expectedInput}. gateHoldTimer={gateHoldTimer:F2}");
+            gateHoldTimer = 0f;
+            CompleteTutorialStep();
+        }
+
+        // safety: if gating active and tutorialActive, ensure mast/tilt raw values are zeroed if not allowed
         if (guidedGateEnabled && tutorialActive)
         {
             bool allowMast = expectedInput == ExpectedInputType.MastUp || expectedInput == ExpectedInputType.MastDown;
             bool allowTilt = expectedInput == ExpectedInputType.TiltUp || expectedInput == ExpectedInputType.TiltDown;
 
-            if (!allowMast) MastRawInput = 0f;
-            if (!allowTilt) TiltRawInput = 0f;
+            if (!allowMast)
+            {
+                if (MastRawInput != 0f) LogVerbose("Blocking MastRawInput due to gate");
+                MastRawInput = 0f;
+                if (forkController != null) forkController.MastInput = 0f;
+            }
+            if (!allowTilt)
+            {
+                if (TiltRawInput != 0f) LogVerbose("Blocking TiltRawInput due to gate");
+                TiltRawInput = 0f;
+                if (forkController != null) forkController.tiltInput = 0f;
+            }
         }
     }
 
     void CompleteTutorialStep()
     {
         // stop gate and restore normal input behavior
+        LogDebug("CompleteTutorialStep() called. expectedInput=" + expectedInput + " tutorialActive=" + tutorialActive);
+
         tutorialActive = false;
         expectedInput = ExpectedInputType.None;
         gateHoldTimer = 0f;
 
         // call StageManager
         if (StageManager.Instance != null)
+        {
+            LogDebug("Calling StageManager.Instance.StepCompleted()");
             StageManager.Instance.StepCompleted();
+        }
+        else
+        {
+            LogDebug("StageManager.Instance is null — cannot call StepCompleted()");
+        }
     }
 
     // ================= PUBLIC CONTROL API =================
@@ -746,46 +905,27 @@ public class G29VehicleInput : MonoBehaviour
     /// Starts a guided tutorial step for the given expected input.
     /// If requireNeutralBeforeStart==true, the method waits until raw inputs are neutral then activates the gate.
     /// </summary>
-    public void StartTutorialStep(ExpectedInputType input, bool requireNeutral = true, float optionalHoldTime = -1f, float optionalThreshold = -1f)
-    {
-        StopAllCoroutines(); // cancel any previous start requests
-        if (optionalHoldTime > 0f) gateRequiredHoldTime = optionalHoldTime;
-        if (optionalThreshold >= 0f) gateInputThreshold = optionalThreshold;
+   public void StartTutorialStep(ExpectedInputType input, bool requireNeutral = false, float optionalHoldTime = -1f, float optionalThreshold = -1f)
+{
+    StopAllCoroutines();
 
-        if (requireNeutral && requireNeutralBeforeStart)
-        {
-            StartCoroutine(WaitForNeutralThenStart(input));
-            return;
-        }
+    tutorialStepAlreadyCompleted = false;   // 🔥 RESET HERE
 
-        expectedInput = input;
-        tutorialActive = true;
-        gateHoldTimer = 0f;
-        gateStartRequestedAt = Time.time;
-    }
+    expectedInput = input;
+    tutorialActive = true;
+    gateHoldTimer = 0f;
 
-    IEnumerator WaitForNeutralThenStart(ExpectedInputType input)
-    {
-        // wait until all raw inputs are neutral (below thresholds)
-        while (Mathf.Abs(rawSteerInput) > 0.05f || rawThrottleInput > 0.02f || rawBrakeInput > 0.02f || gearState != 0)
-        {
-            // if hardware not ready, break to avoid lock
-            if (G29Manager.Instance == null || !G29Manager.Instance.Ready) yield break;
-            yield return null;
-        }
-
-        expectedInput = input;
-        tutorialActive = true;
-        gateHoldTimer = 0f;
-        gateStartRequestedAt = Time.time;
-    }
+    Debug.Log("[G29] Tutorial Started: " + expectedInput);
+}
 
     public void StopTutorial()
     {
+        LogDebug("StopTutorial() called. expectedInput=" + expectedInput + " tutorialActive=" + tutorialActive);
         tutorialActive = false;
         expectedInput = ExpectedInputType.None;
         gateHoldTimer = 0f;
     }
+
     void ApplyHardInputLock(ExpectedInputType allowedInput)
     {
         // Reset everything first
@@ -822,22 +962,28 @@ public class G29VehicleInput : MonoBehaviour
 
             case ExpectedInputType.MastUp:
             case ExpectedInputType.MastDown:
-                // allow mast only
+                // allow mast only (handled in HandleGuidedGate)
                 break;
 
             case ExpectedInputType.TiltUp:
             case ExpectedInputType.TiltDown:
-                // allow tilt only
+                // allow tilt only (handled in HandleGuidedGate)
                 break;
         }
+
+        LogDebug("ApplyHardInputLock -> allowedInput=" + allowedInput + " throttle=" + throttleInput + " brake=" + brakeInput + " steer=" + steerInput);
     }
+
     /// <summary>
     /// Enable/disable UnityEvents firing (useful in assessment or replay).
     /// </summary>
     public void EnableEvents(bool enable)
     {
         eventsEnabled = enable;
-    }// ===== WRAPPERS FOR UNITYEVENT =====
+        LogDebug("EnableEvents: " + enable);
+    }
+
+    // ===== WRAPPERS FOR UNITYEVENT =====
 
     public void StartStep_Accelerator()
     {
@@ -887,64 +1033,36 @@ public class G29VehicleInput : MonoBehaviour
     {
         StartTutorialStep(ExpectedInputType.TiltDown);
     }
+
+    // Generic completion helper used by specific "CompleteX" wrappers
     public void CompleteStepIfMatches(ExpectedInputType stepType)
     {
-        if (tutorialActive && expectedInput == stepType)
-        {
-            CompleteTutorialStep();
-        }
-    }
-    public void CompleteAccelerator_Step()
-    {
-        CompleteStepIfMatches(ExpectedInputType.Accelerator);
+        if (!tutorialActive)
+            return;
+
+        if (tutorialStepAlreadyCompleted)
+            return;
+
+        if (expectedInput != stepType)
+            return;
+
+        tutorialStepAlreadyCompleted = true;
+
+        Debug.Log("[G29] Tutorial Step Completed: " + stepType);
+
+        CompleteTutorialStep();
     }
 
-    public void CompleteBrake_Step()
-    {
-        CompleteStepIfMatches(ExpectedInputType.Brake);
-    }
+    public void CompleteAccelerator_Step() { CompleteStepIfMatches(ExpectedInputType.Accelerator); }
+    public void CompleteBrake_Step() { CompleteStepIfMatches(ExpectedInputType.Brake); }
+    public void CompleteSteerLeft_Step() { CompleteStepIfMatches(ExpectedInputType.SteerLeft); }
+    public void CompleteSteerRight_Step() { CompleteStepIfMatches(ExpectedInputType.SteerRight); }
+    public void CompleteGearForward_Step() { CompleteStepIfMatches(ExpectedInputType.GearForward); }
+    public void CompleteGearReverse_Step() { CompleteStepIfMatches(ExpectedInputType.GearReverse); }
+    public void CompleteMastUp_Step() { CompleteStepIfMatches(ExpectedInputType.MastUp); }
+    public void CompleteMastDown_Step() { CompleteStepIfMatches(ExpectedInputType.MastDown); }
+    public void CompleteTiltUp_Step() { CompleteStepIfMatches(ExpectedInputType.TiltUp); }
+    public void CompleteTiltDown_Step() { CompleteStepIfMatches(ExpectedInputType.TiltDown); }
 
-    public void CompleteSteerLeft_Step()
-    {
-        CompleteStepIfMatches(ExpectedInputType.SteerLeft);
-    }
-
-    public void CompleteSteerRight_Step()
-    {
-        CompleteStepIfMatches(ExpectedInputType.SteerRight);
-    }
-
-    public void CompleteGearForward_Step()
-    {
-        CompleteStepIfMatches(ExpectedInputType.GearForward);
-    }
-
-    public void CompleteGearReverse_Step()
-    {
-        CompleteStepIfMatches(ExpectedInputType.GearReverse);
-    }
-
-    public void CompleteMastUp_Step()
-    {
-        CompleteStepIfMatches(ExpectedInputType.MastUp);
-    }
-
-    public void CompleteMastDown_Step()
-    {
-        CompleteStepIfMatches(ExpectedInputType.MastDown);
-    }
-
-    public void CompleteTiltUp_Step()
-    {
-        CompleteStepIfMatches(ExpectedInputType.TiltUp);
-    }
-
-    public void CompleteTiltDown_Step()
-    {
-        CompleteStepIfMatches(ExpectedInputType.TiltDown);
-    }
-    /// <summary>
-    /// Backwards-compatible method: set drive enabled (still respected while gating)
-    /// </summary>
-
+    // End of class
 }

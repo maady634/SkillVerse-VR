@@ -13,16 +13,16 @@ MonoBehaviour:
   m_Name: Step05
   m_EditorClassIdentifier: 
   stepSubtitle: Raise the forks.
-  stepAudio: {fileID: 0}
+  stepAudio: {fileID: 8300000, guid: 4a255aaf6abb52e49a9eff3957aae6c6, type: 3}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
   helpText: Pull the lift control lever backward to elevate the forks. Raise them
     slowly to the required height while maintaining stability.
-  helpAudio: {fileID: 0}
+  helpAudio: {fileID: 8300000, guid: 617841c3c47d5fc47b6d7b0e60e7cebb, type: 3}
   completionText: 
-  completionAudio: {fileID: 8300000, guid: 29cd1fecb11018d4f84a534737efbbe8, type: 3}
+  completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 1
-  helpDelay: 15
+  helpDelay: 30
   CorrectIcon: 1
   Score: 1
   prefab: {fileID: 0}

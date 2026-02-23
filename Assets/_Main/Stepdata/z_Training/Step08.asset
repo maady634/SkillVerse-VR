@@ -15,7 +15,7 @@ MonoBehaviour:
   stepSubtitle: Shift the gear from Forward to reverse.
   stepAudio: {fileID: 8300000, guid: 3576d3c70c78bb743b6f937de61672bc, type: 3}
   stepSubtitle2: 
-  stepAudio2: {fileID: 8300000, guid: 955b9c3bf002b884f9578e105ba72144, type: 3}
+  stepAudio2: {fileID: 0}
   helpText: Hold the gear lever firmly and pull it backward into the reverse position.
     Ensure the forklift is completely stopped before shifting.
   helpAudio: {fileID: 8300000, guid: 955b9c3bf002b884f9578e105ba72144, type: 3}

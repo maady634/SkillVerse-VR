@@ -18,7 +18,7 @@ public class StageManager : MonoBehaviour
 
     public int currentStepIndex = 0;
     public int completedStepIndex = 0;
-    
+
     public StageSO[] StageSOs; // Assign in Inspector
     public Stages[] Stages; // Gameobjects for each step
 
@@ -31,10 +31,14 @@ public class StageManager : MonoBehaviour
 
     public int AssessmentScore = 0;
     public int TrainingScore = 0;
-
+    Coroutine currentAudioCoroutine;
 
     [ReadOnly(true)]
     GameObject PanelTemp;
+
+    // Robust per-step guards
+    bool[] stepHasStarted;
+    bool[] stepHasCompleted;
 
     private void Awake()
     {
@@ -48,6 +52,8 @@ public class StageManager : MonoBehaviour
 
     private void Start()
     {
+        InitializeStepState();
+
         if (StageSOs != null && StageSOs.Length > 0)
         {
             StartNextStep();
@@ -58,6 +64,13 @@ public class StageManager : MonoBehaviour
         }
 
         //_CorrectIcon = SensoryProfileControl.Instance.Selected;
+    }
+
+    void InitializeStepState()
+    {
+        int len = StageSOs != null ? StageSOs.Length : 0;
+        stepHasStarted = new bool[len];
+        stepHasCompleted = new bool[len];
     }
 
     private void Update()
@@ -76,64 +89,120 @@ public class StageManager : MonoBehaviour
             }
         }*/
     }
-    
+
     public void StartNextStep()
     {
-        if (StageSOs != null && currentStepIndex < StageSOs.Length && Stages != null && isStepCompleted)
+        // Cancel any previously scheduled invokes (VERY IMPORTANT)
+        CancelInvoke();
+
+        // Stop any running audio coroutine
+        if (currentAudioCoroutine != null)
         {
-            CompletionLock = false;
-            isStepCompleted = false;
-            StageSO currentStep = StageSOs[currentStepIndex];
-            Stages currentStage = Stages[currentStepIndex];
-
-            if (currentStep != null)
-            {
-                // Setup Subtitle
-                if (subtitle != null) subtitle.text = currentStep.stepSubtitle;
-
-                // Step start event
-                if (currentStage?.StartEvent != null) currentStage.StartEvent.Invoke();
-                Invoke("DelayEventFunc", currentStage?.DelayEventTime ?? 0);
-
-                if (currentStage.userPosition != null)
-                {
-                    User.transform.position = currentStage.userPosition.transform.position;
-                    User.transform.rotation = currentStage.userPosition.transform.rotation;
-                }
-
-                if (currentStep.completionType == StageSO.CompletionType.UIandTrigger)
-                {
-                    PanelTemp = Instantiate(currentStep.prefab, currentStage.prefabPosition.transform.localPosition, currentStage.prefabPosition.transform.localRotation) as GameObject;
-                }
-
-                // Play Step Audio
-                StartCoroutine(PlayAudioWithCompletion(AudioHandler, currentStep.stepAudio, () =>
-                {
-                    if (currentStep.completionType == StageSO.CompletionType.AfterAudio)
-                    {
-                        CompletionLock = false;
-                        StepCompleted();
-                    }
-                }));
-
-                if(currentStepIndex == completedStepIndex)
-                {
-                    if(currentStep.stepAudio2 != null)
-                    {
-                        Invoke(nameof(SecondSubtitle), currentStep.stepAudio.length);
-                    }
-
-                    if(currentStep.helpAudio != null)
-                    {
-                        // Setup and Delay Help Text and Audio
-                        Invoke(nameof(ShowHelp), currentStep.helpDelay);
-                    }
-                }
-            }
+            StopCoroutine(currentAudioCoroutine);
+            currentAudioCoroutine = null;
         }
-        else if (currentStepIndex >= (StageSOs?.Length ?? 0))
+
+        // Stop any currently playing audio
+        if (AudioHandler != null)
         {
-            Debug.Log("All steps have been completed.");
+            AudioHandler.Stop();
+        }
+
+        // Basic bounds check
+        if (StageSOs == null || Stages == null)
+        {
+            Debug.LogWarning("[StageManager] StartNextStep called but StageSOs or Stages is null.");
+            return;
+        }
+
+        if (currentStepIndex >= StageSOs.Length)
+        {
+            Debug.Log("[StageManager] All steps have been completed.");
+            return;
+        }
+
+        // Prevent re-starting the same step if it's already started
+        if (stepHasStarted != null &&
+            currentStepIndex < stepHasStarted.Length &&
+            stepHasStarted[currentStepIndex])
+        {
+            Debug.LogWarning($"[StageManager] Step {currentStepIndex} already started. Ignoring duplicate call.");
+            return;
+        }
+
+        // Preserve original gating behaviour
+        if (!isStepCompleted)
+        {
+            Debug.LogWarning($"[StageManager] Previous step not marked completed. currentStepIndex={currentStepIndex}");
+            return;
+        }
+
+        CompletionLock = false;
+        isStepCompleted = false;
+
+        StageSO currentStep = StageSOs[currentStepIndex];
+        Stages currentStage = Stages[currentStepIndex];
+
+        // Mark step as started
+        if (stepHasStarted != null && currentStepIndex < stepHasStarted.Length)
+            stepHasStarted[currentStepIndex] = true;
+
+        if (currentStep == null)
+            return;
+
+        Debug.Log($"[StageManager] Starting step {currentStepIndex}: {currentStep.stepSubtitle}");
+
+        // Subtitle
+        if (subtitle != null)
+            subtitle.text = currentStep.stepSubtitle;
+
+        // Start event
+        currentStage?.StartEvent?.Invoke();
+        Invoke(nameof(DelayEventFunc), currentStage?.DelayEventTime ?? 0);
+
+        // Position user
+        if (currentStage?.userPosition != null)
+        {
+            User.transform.position = currentStage.userPosition.transform.position;
+            User.transform.rotation = currentStage.userPosition.transform.rotation;
+        }
+
+        // UI Prefab
+        if (currentStep.completionType == StageSO.CompletionType.UIandTrigger &&
+            currentStep.prefab != null &&
+            currentStage?.prefabPosition != null)
+        {
+            PanelTemp = Instantiate(
+                currentStep.prefab,
+                currentStage.prefabPosition.transform.position,
+                currentStage.prefabPosition.transform.rotation
+            );
+        }
+
+        // Play Step Audio SAFELY
+        currentAudioCoroutine = StartCoroutine(
+            PlayAudioWithCompletion(AudioHandler, currentStep.stepAudio, () =>
+            {
+                if (currentStep.completionType == StageSO.CompletionType.AfterAudio)
+                {
+                    CompletionLock = false;
+                    StepCompleted();
+                }
+            })
+        );
+
+        // Secondary audio + help
+        if (currentStepIndex == completedStepIndex)
+        {
+            if (currentStep.stepAudio2 != null)
+            {
+                Invoke(nameof(SecondSubtitle), currentStep.stepAudio.length);
+            }
+
+            if (currentStep.helpAudio != null)
+            {
+                Invoke(nameof(ShowHelp), currentStep.helpDelay);
+            }
         }
     }
 
@@ -162,7 +231,8 @@ public class StageManager : MonoBehaviour
             }
         }
 
-        if (StageSOs[currentStepIndex].Score == true)
+        // keep original scoring logic
+        if (StageSOs != null && StageSOs.Length > currentStepIndex && StageSOs[currentStepIndex].Score == true)
         {
             TrainingScore -= 10;
         }
@@ -185,6 +255,7 @@ public class StageManager : MonoBehaviour
     {
         if (audioSource != null && clip != null)
         {
+            audioSource.Stop();
             audioSource.clip = clip;
             audioSource.Play();
         }
@@ -192,21 +263,23 @@ public class StageManager : MonoBehaviour
 
     private IEnumerator PlayAudioWithCompletion(AudioSource audioSource, AudioClip clip, System.Action onCompletion)
     {
-        if (audioSource != null && clip != null)
-        {
-            //yield return new WaitForSeconds(3);
+        if (audioSource == null)
+            yield break;
 
+        // Stop previous audio immediately
+        audioSource.Stop();
+
+        if (clip != null)
+        {
             audioSource.clip = clip;
             audioSource.Play();
 
-            // Wait until the audio has finished playing
             yield return new WaitForSeconds(clip.length);
-
-            // Invoke the completion callback
-            onCompletion?.Invoke();
         }
-    }
 
+        currentAudioCoroutine = null;
+        onCompletion?.Invoke();
+    }
     private void DelayEventFunc()
     {
         if (Stages != null && currentStepIndex < Stages.Length)
@@ -219,39 +292,89 @@ public class StageManager : MonoBehaviour
     [ContextMenu("CompleteStep")]
     public void StepCompleted() // Call this from your code trigger if CompletionType is CodeTrigger
     {
-        completedStepIndex++;
-        if (!CompletionLock && Stages != null && currentStepIndex < Stages.Length)
+        // Guard: bounds check
+        if (StageSOs == null || Stages == null)
         {
+            Debug.LogWarning("[StageManager] StepCompleted called but StageSOs or Stages is null.");
+            return;
+        }
+
+        if (currentStepIndex >= StageSOs.Length)
+        {
+            Debug.LogWarning("[StageManager] StepCompleted called but currentStepIndex out of range.");
+            return;
+        }
+
+        // Prevent duplicate completion for the same step
+        if (stepHasCompleted != null && currentStepIndex < stepHasCompleted.Length && stepHasCompleted[currentStepIndex])
+        {
+            Debug.LogWarning($"[StageManager] StepCompleted: step {currentStepIndex} already completed — ignoring duplicate complete.");
+            return;
+        }
+
+        // Only allow completion when not locked (preserve original CompletionLock semantics)
+        if (CompletionLock)
+        {
+            Debug.LogWarning($"[StageManager] StepCompleted called but CompletionLock is true. Ignoring. currentStepIndex={currentStepIndex}");
+            return;
+        }
+
+        // Mark as completed
+        if (stepHasCompleted != null && currentStepIndex < stepHasCompleted.Length)
+            stepHasCompleted[currentStepIndex] = true;
+
+        // Execute completion
+        isStepCompleted = true;
+        StageSO currentStep = StageSOs[currentStepIndex];
+        Stages[currentStepIndex]?.EndEvent?.Invoke();
+
+        if (currentStep != null && currentStep.CorrectIcon == true)
+        {
+            CorrectIcon();
+        }
+
+        ShowComplete();
+
+        // Preserve original completedStepIndex behavior: increment once on successful completion
+        completedStepIndex++;
+
+        // Destroy prefab panel if present
+        if (PanelTemp != null)
+        {
+            Destroy(PanelTemp);
+            PanelTemp = null;
+        }
+
+        // Advance index only after completion actions
+        currentStepIndex++;
+
+        Debug.Log("Step Completed : " + currentStepIndex);
+
+        // Schedule next step if available
+        if (currentStepIndex < Stages.Length)
+        {
+            Stages currentStage = Stages[currentStepIndex];
+            StageSO nextStep = StageSOs[currentStepIndex];
+
+            float delay = 0f;
+            if (currentStep != null && currentStep.completionAudio != null)
+            {
+                delay += currentStep.completionAudio.length;
+            }
+
+            delay += (currentStage?.StepCompletionTime ?? 0);
+
+            // Ensure we mark the state so StartNextStep can run
+            CompletionLock = true; // match original behaviour
+            // Set isStepCompleted true (so StartNextStep can run). This mirrors original flow where StepCompleted sets isStepCompleted = true.
             isStepCompleted = true;
-            Stages[currentStepIndex]?.EndEvent?.Invoke();
 
-            if(StageSOs[currentStepIndex].CorrectIcon == true)
-            {
-                CorrectIcon();
-            }
-
-            ShowComplete();
-
-            currentStepIndex++;
-
-            if(PanelTemp != null)
-            {
-                Destroy(PanelTemp);
-            }
-
-            if (currentStepIndex < Stages.Length)
-            {
-                Stages currentStage = Stages[currentStepIndex];
-                StageSO currentStep = StageSOs[currentStepIndex];
-
-                if(currentStep.completionAudio != null)
-                {
-                    Invoke(nameof(StartNextStep), currentStep.completionAudio.length + (currentStage?.StepCompletionTime ?? 0));
-                }
-                
-            }
-            Debug.Log("Step Completed :" + currentStepIndex);
+            Invoke(nameof(StartNextStep), delay);
+        }
+        else
+        {
             CompletionLock = true;
+            Debug.Log("[StageManager] All steps finished.");
         }
     }
 

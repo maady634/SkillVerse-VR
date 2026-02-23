@@ -2,66 +2,78 @@
 
 public class ForkliftAudioManager : MonoBehaviour
 {
-    public G29VehicleInput vehicle;
+    public static ForkliftAudioManager Instance;
 
+    [Header("REFERENCES")]
+    public G29VehicleInput vehicle;
+    public ForkliftHolderController forkController;
+
+    // ================= ENGINE =================
     [Header("ENGINE")]
     public AudioSource engineIdleSource;
     public AudioSource engineRunSource;
     public float minRPM = 700f;
     public float maxRPM = 2500f;
 
+    // ================= TRANSMISSION =================
     [Header("TRANSMISSION")]
     public AudioSource gearSource;
     public AudioClip gearShiftClip;
     public AudioSource reverseBeepSource;
-    int lastGear;
+    private int lastGear;
 
+    // ================= HYDRAULICS =================
     [Header("HYDRAULICS")]
-    public ForkliftHolderController forkController;
     public AudioSource hydraulicSource;
     public AudioClip hydraulicLoopClip;
     public AudioClip hydraulicStartClip;
-    public float hydraulicDeadZone = 0.0003f;
-    public float hydraulicResponse = 6f;
 
-    float lastMastHeight;
-    bool hydraulicActive;
+    private float lastMastHeight;
+    private bool hydraulicActive;
 
+    // ================= ROLLING =================
     [Header("ROLLING")]
     public AudioSource rollingSource;
 
+    // ================= IMPACTS =================
     [Header("IMPACTS")]
     public AudioSource impactSource;
     public AudioClip[] lightImpactClips;
     public AudioClip[] heavyImpactClips;
 
-    int lastLightIndex = -1;
-    int lastHeavyIndex = -1;
+    private int lastLightIndex = -1;
+    private int lastHeavyIndex = -1;
 
+    // ================= BUMPS =================
     [Header("BUMPS")]
     public AudioSource bumpSource;
     public AudioClip bumpClip;
 
-    public static ForkliftAudioManager instance;
-
-    private void Start()
+    // =========================================================
+    // ================= SINGLETON SAFE ========================
+    // =========================================================
+    private void Awake()
     {
-        if(instance == null)
+        if (Instance != null && Instance != this)
         {
-            instance = this;
-        }
-        else
-        {
-            Destroy(this);
-        }
-    }
-    void Update()
-    {
-        if (!vehicle)
-        {
-            Debug.LogError("[AUDIO] Vehicle reference NULL");
+            Destroy(gameObject);
             return;
         }
+
+        Instance = this;
+
+        // Ensure looping where required
+        if (engineIdleSource) engineIdleSource.loop = true;
+        if (engineRunSource) engineRunSource.loop = true;
+        if (rollingSource) rollingSource.loop = true;
+        if (reverseBeepSource) reverseBeepSource.loop = true;
+        if (hydraulicSource) hydraulicSource.loop = true;
+    }
+
+    private void Update()
+    {
+        if (!vehicle)
+            return;
 
         UpdateEngine();
         UpdateRolling();
@@ -70,44 +82,47 @@ public class ForkliftAudioManager : MonoBehaviour
         UpdateReverseBeep();
     }
 
-    // ================= ENGINE =================
+    // =========================================================
+    // ================= ENGINE ================================
+    // =========================================================
     void UpdateEngine()
     {
         float throttle = vehicle.AcceleratorValue;
         float rpm = Mathf.Lerp(minRPM, maxRPM, throttle);
-        float rpm01 = (rpm - minRPM) / (maxRPM - minRPM);
+        float rpm01 = Mathf.InverseLerp(minRPM, maxRPM, rpm);
 
-        Debug.Log($"[ENGINE] throttle={throttle:F2} rpm={rpm:F0}");
-
-        engineIdleSource.volume = Mathf.Clamp01(0.5f * (1f - rpm01));
-        engineRunSource.volume = Mathf.Clamp01(0.75f * rpm01);
-
-        engineIdleSource.pitch = 0.9f + rpm01 * 0.2f;
-        engineRunSource.pitch = 0.9f + rpm01 * 0.4f;
-
-        if (!engineIdleSource.isPlaying)
+        if (engineIdleSource)
         {
-            Debug.Log("[ENGINE] Idle START");
-            engineIdleSource.Play();
+            engineIdleSource.volume = Mathf.Clamp01(0.5f * (1f - rpm01));
+            engineIdleSource.pitch = 0.9f + rpm01 * 0.2f;
+
+            if (!engineIdleSource.isPlaying)
+                engineIdleSource.Play();
         }
 
-        if (!engineRunSource.isPlaying)
+        if (engineRunSource)
         {
-            Debug.Log("[ENGINE] Run START");
-            engineRunSource.Play();
+            engineRunSource.volume = Mathf.Clamp01(0.75f * rpm01);
+            engineRunSource.pitch = 0.9f + rpm01 * 0.4f;
+
+            if (!engineRunSource.isPlaying)
+                engineRunSource.Play();
         }
     }
 
-    // ================= ROLLING =================
+    // =========================================================
+    // ================= ROLLING ===============================
+    // =========================================================
     void UpdateRolling()
     {
-        float speed = vehicle.CurrentSpeed;
+        if (!rollingSource) return;
 
-        Debug.Log($"[ROLLING] speed={speed:F2}");
+        float speed = vehicle.CurrentSpeed;
 
         if (speed < 0.3f)
         {
-            rollingSource.volume = 0f;
+            if (rollingSource.isPlaying)
+                rollingSource.Stop();
             return;
         }
 
@@ -117,72 +132,47 @@ public class ForkliftAudioManager : MonoBehaviour
         rollingSource.pitch = 0.8f + speed01 * 0.5f;
 
         if (!rollingSource.isPlaying)
-        {
-            Debug.Log("[ROLLING] START");
             rollingSource.Play();
-        }
     }
 
-    // ================= HYDRAULICS =================
+    // =========================================================
+    // ================= HYDRAULICS ============================
+    // =========================================================
     void UpdateHydraulics()
     {
+        if (!hydraulicSource || !forkController)
+            return;
+
         float mast = vehicle.CurrentMastHeight;
         float delta = mast - lastMastHeight;
         float speed = Mathf.Abs(delta) / Mathf.Max(Time.deltaTime, 0.0001f);
-        float mastInput = forkController.MastInput; // -1, 0, 1
+
+        float mastInput = forkController.MastInput;
         bool shouldBeActive = Mathf.Abs(mastInput) > 0.01f;
-
-
-        Debug.Log(
-            $"[HYD] mast={mast:F4} delta={delta:F6} speed={speed:F5} " +
-            $"shouldBeActive={shouldBeActive} active={hydraulicActive} " +
-            $"isPlaying={hydraulicSource.isPlaying}"
-        );
 
         if (shouldBeActive && !hydraulicActive)
         {
             hydraulicActive = true;
 
-            Debug.Log("[HYD] ACTIVATED");
-
             hydraulicSource.clip = hydraulicLoopClip;
-            hydraulicSource.loop = true;
             hydraulicSource.volume = 0.6f;
             hydraulicSource.pitch = 1f;
             hydraulicSource.Play();
 
             if (hydraulicStartClip)
-            {
-                Debug.Log("[HYD] Start hiss");
                 hydraulicSource.PlayOneShot(hydraulicStartClip, 0.7f);
-            }
-            else
-            {
-                Debug.LogWarning("[HYD] Start clip NULL");
-            }
         }
 
         if (hydraulicActive)
         {
             float speed01 = Mathf.Clamp01(speed / 0.15f);
-            float targetVolume = Mathf.Clamp01(0.6f + speed01 * 0.3f);
 
-            hydraulicSource.volume = targetVolume;
+            hydraulicSource.volume = Mathf.Lerp(0.6f, 0.9f, speed01);
             hydraulicSource.pitch = Mathf.Lerp(0.9f, 1.3f, speed01);
-
-            Debug.Log($"[HYD] RUN vol={hydraulicSource.volume:F2} pitch={hydraulicSource.pitch:F2}");
 
             if (!shouldBeActive)
             {
-                Debug.Log("[HYD] DEACTIVATE");
                 hydraulicActive = false;
-            }
-        }
-        else
-        {
-            if (hydraulicSource.isPlaying)
-            {
-                Debug.Log("[HYD] STOP");
                 hydraulicSource.Stop();
             }
         }
@@ -190,47 +180,46 @@ public class ForkliftAudioManager : MonoBehaviour
         lastMastHeight = mast;
     }
 
-    // ================= GEAR =================
+    // =========================================================
+    // ================= GEAR SHIFT ============================
+    // =========================================================
     void UpdateGear()
     {
         int gear = vehicle.GearState;
 
         if (gear != lastGear)
         {
-            Debug.Log($"[GEAR] {lastGear} → {gear}");
-
-            if (gearShiftClip)
+            if (gearShiftClip && gearSource)
                 gearSource.PlayOneShot(gearShiftClip, 0.8f);
-            else
-                Debug.LogWarning("[GEAR] Shift clip NULL");
 
             lastGear = gear;
         }
     }
 
-    // ================= REVERSE =================
+    // =========================================================
+    // ================= REVERSE BEEP ==========================
+    // =========================================================
     void UpdateReverseBeep()
     {
+        if (!reverseBeepSource) return;
+
         if (vehicle.GearState < 0)
         {
             if (!reverseBeepSource.isPlaying)
-            {
-                Debug.Log("[REVERSE] BEEP START");
                 reverseBeepSource.Play();
-            }
         }
-        else if (reverseBeepSource.isPlaying)
+        else
         {
-            Debug.Log("[REVERSE] BEEP STOP");
-            reverseBeepSource.Stop();
+            if (reverseBeepSource.isPlaying)
+                reverseBeepSource.Stop();
         }
     }
 
-    // ================= IMPACTS =================
+    // =========================================================
+    // ================= IMPACTS ===============================
+    // =========================================================
     public void PlayImpactSound(float strength01)
     {
-        Debug.Log($"[IMPACT] strength={strength01:F2}");
-
         if (strength01 < 0.3f)
             PlayRandom(lightImpactClips, ref lastLightIndex, 0.6f);
         else
@@ -239,32 +228,27 @@ public class ForkliftAudioManager : MonoBehaviour
 
     void PlayRandom(AudioClip[] clips, ref int lastIndex, float volume)
     {
-        if (clips == null || clips.Length == 0)
-        {
-            Debug.LogWarning("[IMPACT] Clips NULL or empty");
+        if (clips == null || clips.Length == 0 || !impactSource)
             return;
-        }
 
         int index;
-        do { index = Random.Range(0, clips.Length); }
+        do
+        {
+            index = Random.Range(0, clips.Length);
+        }
         while (clips.Length > 1 && index == lastIndex);
 
         lastIndex = index;
         impactSource.PlayOneShot(clips[index], volume);
-
-        Debug.Log($"[IMPACT] Played clip {clips[index].name}");
     }
 
-    // ================= BUMPS =================
+    // =========================================================
+    // ================= BUMPS =================================
+    // =========================================================
     public void PlayBumpSound(float strength01)
     {
-        Debug.Log($"[BUMP] strength={strength01:F2}");
-
-        if (!bumpClip)
-        {
-            Debug.LogWarning("[BUMP] Clip NULL");
+        if (!bumpClip || !bumpSource)
             return;
-        }
 
         bumpSource.PlayOneShot(bumpClip, Mathf.Clamp01(0.4f + strength01 * 0.6f));
     }
