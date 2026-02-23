@@ -173,9 +173,7 @@ public class StageManager : MonoBehaviour
             currentStage?.prefabPosition != null)
         {
             PanelTemp = Instantiate(
-                currentStep.prefab,
-                currentStage.prefabPosition.transform.position,
-                currentStage.prefabPosition.transform.rotation
+                currentStep.prefab
             );
         }
 

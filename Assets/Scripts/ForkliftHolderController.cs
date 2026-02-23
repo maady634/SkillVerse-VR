@@ -169,7 +169,7 @@ public class ForkliftHolderController : MonoBehaviour
         }
     }
 
-    void TryAttach()
+     public void TryAttach()
     {
         if (loadState != LoadState.None) return;
         if (liftT < attachLiftT) return;
@@ -201,7 +201,7 @@ public class ForkliftHolderController : MonoBehaviour
         }
     }
 
-    void TryDetach()
+   public void TryDetach()
     {
         if (attachedLoad == null) return;
 

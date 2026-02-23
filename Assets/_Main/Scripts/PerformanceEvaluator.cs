@@ -1,11 +1,12 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
 /// Runs a single performance trial: pick a load and place it at a target.
-/// Tracks metrics and computes a score at the end.
+/// This variant is instrumented with extensive debug logging and gizmos to help
+/// diagnose whether the evaluator sees a pick, sees a drop, and measures placement.
 /// </summary>
 public class PerformanceEvaluator : MonoBehaviour
 {
@@ -51,6 +52,10 @@ public class PerformanceEvaluator : MonoBehaviour
     [Tooltip("If true, calls StageManager.Instance.StepCompleted() when trial completes successfully.")]
     public bool completeStageOnSuccess = true;
 
+    [Header("Debug")]
+    [Tooltip("When true, prints detailed debug messages (very verbose).")]
+    public bool verboseLogs = false;
+
     // live state
     public PerformanceResult LastResult { get; private set; }
 
@@ -71,6 +76,7 @@ public class PerformanceEvaluator : MonoBehaviour
     float maxTiltDuringCarry = 0f;
 
     // sampling frequency control
+    [Tooltip("Seconds between metric samples (lower -> more samples)")]
     public float samplingInterval = 0.05f;
     float nextSample = 0f;
 
@@ -81,11 +87,22 @@ public class PerformanceEvaluator : MonoBehaviour
     // flags
     bool trialRunning = false;
 
+    public static PerformanceEvaluator Instance { get; private set; }
     void Awake()
     {
         ResetInternal();
     }
-
+    private void Start()
+    {
+         if(Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(this);
+        }
+    }
     void ResetInternal()
     {
         phase = TrialPhase.Idle;
@@ -101,6 +118,9 @@ public class PerformanceEvaluator : MonoBehaviour
         maxTiltDuringCarry = 0f;
         nextSample = 0f;
         LastResult = null;
+        lastVehiclePos = Vector3.zero;
+        lastVelocity = Vector3.zero;
+        lastAccel = 0f;
         if (collisionTracker != null) collisionTracker.ResetTracker();
     }
 
@@ -117,30 +137,62 @@ public class PerformanceEvaluator : MonoBehaviour
             return;
         }
 
-        // detect pick: when vehicle.currentLoadKg > 0 (vehicle exposes currentLoadKg)
-        bool carrying = vehicle != null && vehicle.AcceleratorValue >= -1f /* harmless */ ? vehicle.CurrentMastHeight >= 0f || vehicle.AcceleratorValue > -1f : false;
-        // better detection: check vehicle.currentLoadKg if available
+        // detect pick/detach using reflection-first approach with fallbacks.
         bool hasLoad = false;
-        try
+        bool checkedVehicleField = false;
+        float debugCurrentLoadKg = -1f;
+
+        if (vehicle != null)
         {
-            // try reflection-free: vehicle has public currentLoadKg in your earlier script
-            var vType = vehicle.GetType();
-            var field = vType.GetField("currentLoadKg");
-            if (field != null)
+            try
             {
-                float cur = (float)field.GetValue(vehicle);
-                hasLoad = cur > 0.0001f;
+                var vType = vehicle.GetType();
+                var currLoadField = vType.GetField("currentLoadKg");
+                if (currLoadField != null)
+                {
+                    object val = currLoadField.GetValue(vehicle);
+                    if (val is float)
+                    {
+                        debugCurrentLoadKg = (float)val;
+                        hasLoad = debugCurrentLoadKg > 0.0001f;
+                        checkedVehicleField = true;
+                    }
+                    else
+                    {
+                        // if field exists but isn't float, still treat as unknown
+                        if (verboseLogs)
+                            Debug.LogWarning($"[PE DEBUG] currentLoadKg field exists but is type {val?.GetType().Name ?? "null"}");
+                    }
+                }
+
+                if (!checkedVehicleField)
+                {
+                    // fallback to ForkliftHolderController
+                    hasLoad = forkController != null && forkController.ForksAreUnderLoad();
+                }
             }
-            else
+            catch (System.Exception ex)
             {
-                // fallback: ask forkController (ForksAreUnderLoad)
+                if (verboseLogs) Debug.LogWarning($"[PE DEBUG] Exception while reading currentLoadKg: {ex.Message}");
+                // Fail-safe fallback
                 hasLoad = forkController != null && forkController.ForksAreUnderLoad();
             }
         }
-        catch
+        else
         {
+            // If no vehicle reference, try forkController info
             hasLoad = forkController != null && forkController.ForksAreUnderLoad();
         }
+
+        // extra debug: show forkController state if available
+        if (forkController != null && verboseLogs)
+        {
+            bool forksUnder = forkController.ForksAreUnderLoad();
+            Debug.Log($"[PE DEBUG] forkController.ForksAreUnderLoad() => {forksUnder}");
+        }
+
+        // print a debug snapshot each frame while trial running
+        DebugState(hasLoad, debugCurrentLoadKg);
 
         // phase transitions
         if (phase == TrialPhase.Started)
@@ -149,17 +201,45 @@ public class PerformanceEvaluator : MonoBehaviour
             {
                 pickTime = Time.time - trialStartTime;
                 phase = TrialPhase.Picked;
+                if (verboseLogs) Debug.Log($"[PerformanceEvaluator] Pick detected at {pickTime:F2}s");
             }
         }
         else if (phase == TrialPhase.Picked)
         {
-            // detect detach: currentLoadKg becomes zero after being >0
             if (!hasLoad)
             {
-                placeTime = Time.time - trialStartTime;
-                pickToPlaceDuration = placeTime - pickTime;
-                phase = TrialPhase.Placed;
-                CompleteTrialSuccess();
+                if (verboseLogs) Debug.Log("[PE DEBUG] Load detached detected.");
+
+                if (loadObject != null && targetPlacement != null)
+                {
+                    float dist = Vector3.Distance(loadObject.position, targetPlacement.position);
+
+                    if (verboseLogs) Debug.Log($"[PE DEBUG] Placement Distance: {dist:F3} | Required <= {placementRadius:F3}");
+
+                    if (dist <= placementRadius)
+                    {
+                        if (verboseLogs) Debug.Log("[PE DEBUG] Placement VALID → Completing Trial");
+
+                        placeTime = Time.time - trialStartTime;
+                        pickToPlaceDuration = placeTime - pickTime;
+                        phase = TrialPhase.Placed;
+                        CompleteTrialSuccess();
+                    }
+                    else
+                    {
+                        if (verboseLogs) Debug.LogWarning("[PE DEBUG] Placement INVALID → Failing Trial");
+                        FailTrial("Load dropped outside target zone");
+                    }
+                }
+                else
+                {
+                    if (verboseLogs) Debug.LogWarning("[PE DEBUG] Missing loadObject or targetPlacement reference; using fallback success.");
+                    // fallback if no placement references
+                    placeTime = Time.time - trialStartTime;
+                    pickToPlaceDuration = placeTime - pickTime;
+                    phase = TrialPhase.Placed;
+                    CompleteTrialSuccess();
+                }
             }
         }
 
@@ -176,7 +256,7 @@ public class PerformanceEvaluator : MonoBehaviour
 
     void SampleMetrics()
     {
-        // path length
+        // path length and speeds
         if (vehicle != null && vehicle.rb != null)
         {
             Vector3 pos = vehicle.rb.transform.position;
@@ -195,6 +275,7 @@ public class PerformanceEvaluator : MonoBehaviour
                 accel = (vel - lastVelocity).magnitude / samplingInterval;
                 accelSamples.Add(accel);
             }
+
             // jerk
             float jerk = Mathf.Abs(accel - lastAccel) / samplingInterval;
             sumAbsJerk += jerk;
@@ -211,30 +292,68 @@ public class PerformanceEvaluator : MonoBehaviour
     }
 
     // public API
+    /// <summary>
+    /// Start the trial. If autoStartOnCommand==false then external control must call this when ready.
+    /// </summary>
     public void StartTrial()
     {
+        if (trialRunning)
+        {
+            if (verboseLogs) Debug.LogWarning("[PerformanceEvaluator] StartTrial called but a trial is already running.");
+            return;
+        }
+
         ResetInternal();
         trialStartTime = Time.time;
         phase = TrialPhase.Started;
         trialRunning = true;
         nextSample = Time.time + samplingInterval;
         if (collisionTracker != null) collisionTracker.ResetTracker();
+        if (verboseLogs) Debug.Log("[PerformanceEvaluator] Trial started.");
         OnTrialStarted?.Invoke();
     }
 
+    /// <summary>
+    /// Abort the current running trial.
+    /// </summary>
     public void AbortTrial(string reason = "Aborted")
     {
-        if (!trialRunning) return;
+        if (!trialRunning)
+        {
+            if (verboseLogs) Debug.LogWarning("[PerformanceEvaluator] AbortTrial called but no trial is running.");
+            return;
+        }
         FailTrial(reason);
     }
 
-    void CompleteTrialSuccess()
+    /// <summary>
+    /// Force-complete trial successfully (useful for testing).
+    /// </summary>
+    public void ForceCompleteSuccess()
+    {
+        if (!trialRunning)
+        {
+            if (verboseLogs) Debug.LogWarning("[PerformanceEvaluator] ForceCompleteSuccess called but no trial is running.");
+            return;
+        }
+
+        // mark placeTime as current time relative to start
+        placeTime = Time.time - trialStartTime;
+        if (pickTime < 0f) pickTime = 0f;
+        pickToPlaceDuration = placeTime - pickTime;
+        CompleteTrialSuccess();
+    }
+
+   public void CompleteTrialSuccess()
     {
         trialRunning = false;
         phase = TrialPhase.Completed;
         ComputeResult(true, null);
+        if (verboseLogs) Debug.Log($"[PerformanceEvaluator] Trial completed successfully. Score={LastResult?.finalScore}");
+        if (verboseLogs) Debug.Log($"[PE DEBUG] Result placementDistance={LastResult?.placementDistance:F3} placementSuccess={LastResult?.placementSuccess}");
         OnTrialCompleted?.Invoke();
         if (completeStageOnSuccess && StageManager.Instance != null)
+            StageManager.Instance.TrainingScore = GetLastResult().finalScore;
             StageManager.Instance.StepCompleted();
     }
 
@@ -243,7 +362,17 @@ public class PerformanceEvaluator : MonoBehaviour
         trialRunning = false;
         phase = TrialPhase.Failed;
         ComputeResult(false, reason);
+        if (verboseLogs) Debug.LogWarning($"[PerformanceEvaluator] Trial failed: {reason}. Score={LastResult?.finalScore}");
+        if (verboseLogs) Debug.Log($"[PE DEBUG] Result placementDistance={LastResult?.placementDistance:F3} placementSuccess={LastResult?.placementSuccess}");
         OnTrialFailed?.Invoke();
+    }
+
+    /// <summary>
+    /// Returns the last computed result (after completion/fail).
+    /// </summary>
+    public PerformanceResult GetLastResult()
+    {
+        return LastResult;
     }
 
     void ComputeResult(bool success, string failReason)
@@ -317,25 +446,32 @@ public class PerformanceEvaluator : MonoBehaviour
         float smoothnessScore = smoothnessNorm;
 
         // final weighted score
+        // Convert each metric to 0–100
+        float timeScore100 = timeScore * 100f;
+        float placementScore100 = placementScore * 100f;
+        float tiltScore100 = tiltScore * 100f;
+        float collisionScore100 = collisionScore * 100f;
+        float smoothnessScore100 = smoothnessScore * 100f;
+
+        // Normalize weights so they represent percentage contribution
         float totalWeight = weightTime + weightPlacement + weightTilt + weightCollisions + weightSmoothness;
         if (totalWeight <= 0f) totalWeight = 1f;
 
-        float weighted = (timeScore * weightTime
-                        + placementScore * weightPlacement
-                        + tiltScore * weightTilt
-                        + collisionScore * weightCollisions
-                        + smoothnessScore * weightSmoothness) / totalWeight;
+        float timeWeightPercent = weightTime / totalWeight;
+        float placementWeightPercent = weightPlacement / totalWeight;
+        float tiltWeightPercent = weightTilt / totalWeight;
+        float collisionWeightPercent = weightCollisions / totalWeight;
+        float smoothnessWeightPercent = weightSmoothness / totalWeight;
 
-        r.finalScore = Mathf.RoundToInt(weighted * 100f);
-        r.breakdown = new PerformanceBreakdown()
-        {
-            timeScore = Mathf.RoundToInt(timeScore * 100f),
-            placementScore = Mathf.RoundToInt(placementScore * 100f),
-            tiltScore = Mathf.RoundToInt(tiltScore * 100f),
-            collisionScore = Mathf.RoundToInt(collisionScore * 100f),
-            smoothnessScore = Mathf.RoundToInt(smoothnessScore * 100f),
-        };
+        // Final combined score out of 100
+        float finalCombinedScore =
+            (timeScore100 * timeWeightPercent) +
+            (placementScore100 * placementWeightPercent) +
+            (tiltScore100 * tiltWeightPercent) +
+            (collisionScore100 * collisionWeightPercent) +
+            (smoothnessScore100 * smoothnessWeightPercent);
 
+        r.finalScore = Mathf.Clamp(Mathf.RoundToInt(finalCombinedScore), 0, 100);
         LastResult = r;
     }
 
@@ -346,10 +482,49 @@ public class PerformanceEvaluator : MonoBehaviour
         for (int i = 0; i < list.Count; ++i) s += list[i];
         return s / list.Count;
     }
+
+    /// <summary>
+    /// Prints a compact snapshot of internal state when verboseLogs == true.
+    /// </summary>
+    void DebugState(bool hasLoad, float currentLoadKg)
+    {
+        if (!verboseLogs) return;
+
+        float dist = -1f;
+        if (loadObject != null && targetPlacement != null)
+            dist = Vector3.Distance(loadObject.position, targetPlacement.position);
+
+        string currLoadStr = (currentLoadKg >= 0f) ? $"{currentLoadKg:F3}" : "n/a";
+        Debug.Log($"[PE DEBUG] Phase:{phase} | HasLoad:{hasLoad} | currentLoadKg:{currLoadStr} | PickTime:{pickTime:F2} | PlaceTime:{placeTime:F2} | Distance:{dist:F3} | Radius:{placementRadius:F3} | Samples:{speedSamples.Count}");
+    }
+
+    // Visual debug helpers for the editor
+    void OnDrawGizmosSelected()
+    {
+        if (targetPlacement != null)
+        {
+            Gizmos.color = new Color(0f, 1f, 0f, 0.6f);
+            Gizmos.DrawWireSphere(targetPlacement.position, placementRadius);
+        }
+
+        if (loadObject != null && targetPlacement != null)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(loadObject.position, targetPlacement.position);
+        }
+
+        // draw last vehicle position path indicator (small sphere)
+        if (Application.isPlaying && lastVehiclePos != Vector3.zero)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawSphere(lastVehiclePos, 0.02f);
+        }
+    }
 }
 
 /// <summary>
 /// Result container with breakdown and raw metrics.
+/// Kept the same shape you used previously.
 /// </summary>
 public class PerformanceResult
 {

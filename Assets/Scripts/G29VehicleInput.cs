@@ -26,6 +26,11 @@ public enum ExpectedInputType
     TiltUp,
     TiltDown
 }
+public enum OperationMode
+{
+    Tutorial,
+    Performance
+}
 
 public class G29VehicleInput : MonoBehaviour
 {
@@ -199,6 +204,10 @@ public class G29VehicleInput : MonoBehaviour
     // controls whether UnityEvents are fired (useful for disabling during assessment)
     bool eventsEnabled = true;
 
+    [Header("MODE")]
+    public OperationMode currentMode = OperationMode.Tutorial;
+
+
     void Start()
     {
         if (rb && baseCenterOfMass)
@@ -214,12 +223,18 @@ public class G29VehicleInput : MonoBehaviour
             LogVerbose("G29Manager not ready");
             return;
         }
-
         ReadG29_Raw();
-
-        // process events and gating in Update (non-physics)
-        HandleUnityEvents();          // fires events (Pressed/Held/Released) when enabled
-        HandleGuidedGate();           // enforces expected input and blocks others if tutorialActive
+        if (currentMode == OperationMode.Tutorial)
+        {
+            HandleUnityEvents();
+            HandleGuidedGate();
+        }
+        else
+        {
+            // Performance mode
+            tutorialActive = false;
+            expectedInput = ExpectedInputType.None;
+        }
     }
 
     void FixedUpdate()
@@ -529,6 +544,7 @@ public class G29VehicleInput : MonoBehaviour
             LogVerbose("OnGearReverseReleased invoked");
             OnGearReverseReleased?.Invoke();
             gearRevLastFiredTimestamp = now;
+            CompleteGearReverse_Step();
         }
 
         // Mast / Tilt quick checks (these are high-frequency; verbose-only recommended)
@@ -907,7 +923,10 @@ public class G29VehicleInput : MonoBehaviour
     /// </summary>
    public void StartTutorialStep(ExpectedInputType input, bool requireNeutral = false, float optionalHoldTime = -1f, float optionalThreshold = -1f)
 {
-    StopAllCoroutines();
+        if (currentMode != OperationMode.Tutorial)
+            return;
+
+        StopAllCoroutines();
 
     tutorialStepAlreadyCompleted = false;   // 🔥 RESET HERE
 
@@ -1037,6 +1056,9 @@ public class G29VehicleInput : MonoBehaviour
     // Generic completion helper used by specific "CompleteX" wrappers
     public void CompleteStepIfMatches(ExpectedInputType stepType)
     {
+        if (currentMode != OperationMode.Tutorial)
+            return;
+
         if (!tutorialActive)
             return;
 
@@ -1048,11 +1070,24 @@ public class G29VehicleInput : MonoBehaviour
 
         tutorialStepAlreadyCompleted = true;
 
-        Debug.Log("[G29] Tutorial Step Completed: " + stepType);
-
         CompleteTutorialStep();
     }
+    public void EnableTutorialMode()
+    {
+        currentMode = OperationMode.Tutorial;
+        Debug.Log("[G29] Switched to Tutorial Mode");
+    }
 
+    public void EnablePerformanceMode()
+    {
+        currentMode = OperationMode.Performance;
+
+        tutorialActive = false;
+        expectedInput = ExpectedInputType.None;
+        tutorialStepAlreadyCompleted = false;
+
+        Debug.Log("[G29] Switched to Performance Mode");
+    }
     public void CompleteAccelerator_Step() { CompleteStepIfMatches(ExpectedInputType.Accelerator); }
     public void CompleteBrake_Step() { CompleteStepIfMatches(ExpectedInputType.Brake); }
     public void CompleteSteerLeft_Step() { CompleteStepIfMatches(ExpectedInputType.SteerLeft); }
