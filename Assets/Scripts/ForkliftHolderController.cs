@@ -9,10 +9,11 @@ public class ForkliftHolderController : MonoBehaviour
     public Transform lowerPoint;
     public Transform upperPoint;
     public Transform loadAttachPoint;
-    public G29VehicleInput vehicle;
+    public G29VehicleInput vehicle; // optional — if assigned, read mast/tilt from it
 
-    public float MastInput { get; private set; }
-    public float tiltInput { get; private set; }
+    // these are the values used by other systems (kept as settable props)
+    public float MastInput { get; set; }    // -1 = down, +1 = up
+    public float tiltInput { get; set; }    // -1 = tilt down, +1 = tilt up
 
     [Header("Load")]
     public float currentLoadKg = 0f;
@@ -68,10 +69,8 @@ public class ForkliftHolderController : MonoBehaviour
 
     void FixedUpdate()
     {
+        // keep the original LogiUpdate call for compatibility (it won't hurt if vehicle is present)
         if (!LogiUpdate()) return;
-        //debug.Log(
-        // $"[//debug] state={loadState} liftT={liftT:F3} mastInput={MastInput} underLoad={ForksAreUnderLoad()}"
-
 
         UpdateLift();
         UpdateTilt();
@@ -81,13 +80,26 @@ public class ForkliftHolderController : MonoBehaviour
     // ================= LIFT =================
     void UpdateLift()
     {
-        var s = LogiGetStateUnity(0);
-
         float input = 0f;
-        if (s.rgbButtons[7] == 128) input = 1f;
-        else if (s.rgbButtons[6] == 128) input = -1f;
 
-        MastInput = input;
+        if (vehicle != null)
+        {
+            // read mast input routed through vehicle (this allows gating)
+            input = vehicle.MastRawInput;
+        }
+        else
+        {
+            // fallback to original direct Logitech read
+            var s = LogiGetStateUnity(0);
+            if (s.rgbButtons[7] == 128) input = 1f;
+            else if (s.rgbButtons[6] == 128) input = -1f;
+            else input = 0f;
+        }
+
+        // apply deadzone
+        if (Mathf.Abs(input) < deadZone) input = 0f;
+
+        MastInput = input; // exposed value for other systems
 
         float loadRatio = Mathf.Clamp01(currentLoadKg / maxLoadKg);
         float speed = Mathf.Lerp(emptyLiftSpeed, heavyLiftSpeed, loadRatio);
@@ -100,19 +112,31 @@ public class ForkliftHolderController : MonoBehaviour
         Vector3 pos = holder.localPosition;
         pos.y = Mathf.Lerp(localLowerPos.y, localUpperPos.y, liftT);
         holder.localPosition = pos;
-        
     }
 
     // ================= TILT (TRUE HOLD) =================
     void UpdateTilt()
     {
-        var s = LogiGetStateUnity(0);
-
         float input = 0f;
-        if (s.rgbButtons[4] == 128) input = -1f;
-        else if (s.rgbButtons[5] == 128) input = 1f;
 
-        tiltInput = input;
+        if (vehicle != null)
+        {
+            // read tilt input routed through vehicle (this allows gating)
+            input = vehicle.TiltRawInput;
+        }
+        else
+        {
+            var s = LogiGetStateUnity(0);
+            if (s.rgbButtons[4] == 128) input = -1f;
+            else if (s.rgbButtons[5] == 128) input = 1f;
+            else input = 0f;
+        }
+
+        // apply deadzone
+        if (Mathf.Abs(input) < deadZone) input = 0f;
+
+        tiltInput = input; // exposed value for other systems
+
         if (Mathf.Abs(input) < 0.001f)
         {
             holder.localRotation = Quaternion.Euler(0f, 0f, currentTiltZ);
@@ -156,18 +180,13 @@ public class ForkliftHolderController : MonoBehaviour
             loadAttachPoint.rotation
         );
 
-       // //debug.Log($"[ATTACH CHECK] liftT={liftT:F3}, hits={hits.Length}");
-
         foreach (var hit in hits)
         {
             ForkliftLoad load = hit.GetComponent<ForkliftLoad>();
             if (load == null) continue;
 
-            //debug.Log("[ATTACH] ForkliftLoad detected");
-
             if (load.IsAttached())
             {
-                //debug.Log("[ATTACH] Load already attached, skipping");
                 continue;
             }
 
@@ -176,25 +195,23 @@ public class ForkliftHolderController : MonoBehaviour
             load.AttachToFork(loadAttachPoint);
 
             loadState = LoadState.Attached;
-
-            //debug.Log("[ATTACH SUCCESS] Load attached");
-            vehicle.currentLoadKg = load.weightKg;
+            vehicle?.GetType(); // no-op to avoid analysis warnings if vehicle null
+            if (vehicle != null) vehicle.currentLoadKg = load.weightKg;
             break;
         }
     }
 
-
     void TryDetach()
     {
-        if (liftT <= detachLiftT ||
-            Mathf.Abs(currentTiltZ) >= maxTiltZ * 0.98f)
+        if (attachedLoad == null) return;
+
+        if (liftT <= detachLiftT || Mathf.Abs(currentTiltZ) >= maxTiltZ * 0.98f)
         {
             attachedLoad.DetachFromFork();
             attachedLoad = null;
             currentLoadKg = 0f;
 
             loadState = LoadState.Released;
-            //debug.Log("[FORKLIFT] LOAD DETACHED");
         }
     }
 

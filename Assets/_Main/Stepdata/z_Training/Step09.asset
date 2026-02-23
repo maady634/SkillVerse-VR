@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
   m_Name: Step09
   m_EditorClassIdentifier: 
-  stepSubtitle: Rotate the steering wheel to the right while reversing to turn the
-    forklift in that direction.
-  stepAudio: {fileID: 8300000, guid: 17e3c3641eb443841b90b78cfaa4e265, type: 3}
+  stepSubtitle: Press the accelerator to move backward.
+  stepAudio: {fileID: 0}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
-  helpText: Grab the highlighted steering and rotate it using the controllers.
-  helpAudio: {fileID: 8300000, guid: 41942a4d96d141b478a933592358a1ec, type: 3}
+  helpText: After selecting reverse gear, gently press the accelerator pedal to move
+    the forklift backward. Turn your head and check behind you while reversing.
+  helpAudio: {fileID: 0}
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 1

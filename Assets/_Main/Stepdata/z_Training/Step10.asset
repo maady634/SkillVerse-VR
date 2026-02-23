@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
   m_Name: Step10
   m_EditorClassIdentifier: 
-  stepSubtitle: 
+  stepSubtitle: Press the brake pedal to stop.
   stepAudio: {fileID: 0}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
   helpText: 
   helpAudio: {fileID: 0}
-  completionText: "Well done! You\u2019ve successfully completed the forklift handling
-    training."
+  completionText: Move your right foot from the accelerator to the brake pedal and
+    press down firmly to reduce speed or bring the forklift to a complete stop.
   completionAudio: {fileID: 8300000, guid: e2688db1aee47a94b81a8688842c5e92, type: 3}
   completionType: 1
   helpDelay: 30
