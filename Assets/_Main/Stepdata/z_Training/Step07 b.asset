@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Step07 b
   m_EditorClassIdentifier: 
   stepSubtitle: Tilt the mast backward.
-  stepAudio: {fileID: 0}
-  stepSubtitle2: Pull the tilt lever backward to angle the forks slightly upward.
-    This secures the load and improves stability during movement.
+  stepAudio: {fileID: 8300000, guid: b47d3d4dfc6da204f802159806014389, type: 3}
+  stepSubtitle2: 
   stepAudio2: {fileID: 0}
-  helpText: 
-  helpAudio: {fileID: 0}
+  helpText: Pull the tilt lever backward to angle the forks slightly upward. This
+    secures the load and improves stability during movement.
+  helpAudio: {fileID: 8300000, guid: b47d3d4dfc6da204f802159806014389, type: 3}
   completionText: Well done!
-  completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
+  completionAudio: {fileID: 8300000, guid: cac7e564561be584cbc3237301929dd0, type: 3}
   completionType: 1
   helpDelay: 15
   CorrectIcon: 1

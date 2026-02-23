@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Step10
   m_EditorClassIdentifier: 
   stepSubtitle: Press the brake pedal to stop.
-  stepAudio: {fileID: 0}
+  stepAudio: {fileID: 8300000, guid: 3d2dd0d099be63c4e9788b187002e1e8, type: 3}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
-  helpText: 
-  helpAudio: {fileID: 0}
-  completionText: Move your right foot from the accelerator to the brake pedal and
-    press down firmly to reduce speed or bring the forklift to a complete stop.
-  completionAudio: {fileID: 8300000, guid: e2688db1aee47a94b81a8688842c5e92, type: 3}
+  helpText: Move your right foot from the accelerator to the brake pedal and press
+    down firmly to reduce speed or bring the forklift to a complete stop.
+  helpAudio: {fileID: 8300000, guid: 9961a90a4e1bf344686123b5b480fa49, type: 3}
+  completionText: Well Done
+  completionAudio: {fileID: 8300000, guid: 827cbf826db372f4290b382093130693, type: 3}
   completionType: 1
   helpDelay: 30
   CorrectIcon: 1

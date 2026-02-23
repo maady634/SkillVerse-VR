@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Step06
   m_EditorClassIdentifier: 
   stepSubtitle: Lower the forks.
-  stepAudio: {fileID: 0}
+  stepAudio: {fileID: 8300000, guid: cac9fa2f1132f9f449ccde9f483784ba, type: 3}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
   helpText: Push the lift control lever forward to lower the forks carefully. Lower
     them gradually until they reach the desired position.
-  helpAudio: {fileID: 0}
+  helpAudio: {fileID: 8300000, guid: c8e6cd181dad6f84db3459f9aec8944c, type: 3}
   completionText: Well done!
-  completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
+  completionAudio: {fileID: 8300000, guid: 57130f83b29af6644bc58b69ffc75799, type: 3}
   completionType: 1
   helpDelay: 15
   CorrectIcon: 1

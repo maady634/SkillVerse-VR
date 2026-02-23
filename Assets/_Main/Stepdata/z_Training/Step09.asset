@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Step09
   m_EditorClassIdentifier: 
   stepSubtitle: Press the accelerator to move backward.
-  stepAudio: {fileID: 0}
+  stepAudio: {fileID: 8300000, guid: 7beed883401f062408b86bd92ab08e3d, type: 3}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
   helpText: After selecting reverse gear, gently press the accelerator pedal to move
     the forklift backward. Turn your head and check behind you while reversing.
-  helpAudio: {fileID: 0}
+  helpAudio: {fileID: 8300000, guid: 3ced5b798d31bdf4db0684f9824f879b, type: 3}
   completionText: Well done!
-  completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
+  completionAudio: {fileID: 8300000, guid: fc6cb0146999bd54aba2935b0fb8ac13, type: 3}
   completionType: 1
   helpDelay: 30
   CorrectIcon: 1

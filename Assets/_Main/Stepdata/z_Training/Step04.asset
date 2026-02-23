@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: Step04
   m_EditorClassIdentifier: 
   stepSubtitle: Turn the steering wheel to change direction.
-  stepAudio: {fileID: 0}
+  stepAudio: {fileID: 8300000, guid: 0cffc33f6b3711b479afe13fb779a53c, type: 3}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
   helpText: Hold the steering wheel with both hands and rotate it slowly in the desired
     direction. Turn left to move left and right to move right. Maintain smooth control
     while steering.
-  helpAudio: {fileID: 0}
+  helpAudio: {fileID: 8300000, guid: 97ec0b944d94d41418129d6294a86c51, type: 3}
   completionText: Well done!
-  completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
+  completionAudio: {fileID: 8300000, guid: f50b6c7bee02654439d2debf597a354c, type: 3}
   completionType: 1
   helpDelay: 15
   CorrectIcon: 1

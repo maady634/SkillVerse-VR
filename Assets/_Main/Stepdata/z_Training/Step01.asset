@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Step01
   m_EditorClassIdentifier: 
   stepSubtitle: Shift the gear from neutral to first gear.
-  stepAudio: {fileID: 0}
+  stepAudio: {fileID: 8300000, guid: fc7f86944d1d29344a90ab78c3c38488, type: 3}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
   helpText: Grab the gear lever and move it front
-  helpAudio: {fileID: 0}
+  helpAudio: {fileID: 8300000, guid: 5ebfeed14eda8e74991cc4111cbc58c1, type: 3}
   completionText: Well done!
-  completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
+  completionAudio: {fileID: 8300000, guid: 29dacbfd17757c7478170bbf180e40a4, type: 3}
   completionType: 1
   helpDelay: 15
   CorrectIcon: 1

@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Step02
   m_EditorClassIdentifier: 
   stepSubtitle: Press the accelerator pedal gently.
-  stepAudio: {fileID: 0}
+  stepAudio: {fileID: 8300000, guid: c1d16031f04ba794c833abdb4b4d3804, type: 3}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
   helpText: Place your right foot on the accelerator pedal and apply steady, gradual
     pressure to move the forklift forward smoothly.
-  helpAudio: {fileID: 0}
+  helpAudio: {fileID: 8300000, guid: e5a5aa697dacea34fa772dba425e164d, type: 3}
   completionText: Well done!
-  completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
+  completionAudio: {fileID: 8300000, guid: 6095152ad26e3ac45a29f1357b2edcb1, type: 3}
   completionType: 1
   helpDelay: 15
   CorrectIcon: 1

@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Step08
   m_EditorClassIdentifier: 
   stepSubtitle: Shift the gear from Forward to reverse.
-  stepAudio: {fileID: 0}
-  stepSubtitle2: Hold the gear lever firmly and pull it backward into the reverse
-    position. Ensure the forklift is completely stopped before shifting.
-  stepAudio2: {fileID: 0}
-  helpText: Grab the highlighted gear lever the controllers.
-  helpAudio: {fileID: 0}
+  stepAudio: {fileID: 8300000, guid: 3576d3c70c78bb743b6f937de61672bc, type: 3}
+  stepSubtitle2: 
+  stepAudio2: {fileID: 8300000, guid: 955b9c3bf002b884f9578e105ba72144, type: 3}
+  helpText: Hold the gear lever firmly and pull it backward into the reverse position.
+    Ensure the forklift is completely stopped before shifting.
+  helpAudio: {fileID: 8300000, guid: 955b9c3bf002b884f9578e105ba72144, type: 3}
   completionText: Well done!
-  completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
+  completionAudio: {fileID: 8300000, guid: 14a1e2c3ea7de99498f9475b49b5ec4d, type: 3}
   completionType: 1
   helpDelay: 30
   CorrectIcon: 1
