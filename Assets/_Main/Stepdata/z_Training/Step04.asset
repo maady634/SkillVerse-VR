@@ -12,17 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
   m_Name: Step04
   m_EditorClassIdentifier: 
-  stepSubtitle: Slowly rotate the steering wheel to the right to turn the forklift
-    in that direction.
-  stepAudio: {fileID: 8300000, guid: 5c59d1386421f084f96bcf92ea8459d0, type: 3}
+  stepSubtitle: Turn the steering wheel to change direction.
+  stepAudio: {fileID: 0}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
-  helpText: Grab the highlighted steering and rotate it using the controllers.
-  helpAudio: {fileID: 8300000, guid: 41942a4d96d141b478a933592358a1ec, type: 3}
+  helpText: Hold the steering wheel with both hands and rotate it slowly in the desired
+    direction. Turn left to move left and right to move right. Maintain smooth control
+    while steering.
+  helpAudio: {fileID: 0}
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 1
-  helpDelay: 30
+  helpDelay: 15
   CorrectIcon: 1
   Score: 1
   prefab: {fileID: 0}

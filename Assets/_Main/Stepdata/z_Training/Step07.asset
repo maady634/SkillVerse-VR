@@ -12,16 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
   m_Name: Step07
   m_EditorClassIdentifier: 
-  stepSubtitle: Grab the highlighted gear lever and pull it to lift the stack.
-  stepAudio: {fileID: 8300000, guid: ed8994e92b217f34dbbe98b96ab9efee, type: 3}
+  stepSubtitle: Tilt the mast backward.
+  stepAudio: {fileID: 0}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
-  helpText: Grab the highlighted gear lever and pull it to lift the stack.
-  helpAudio: {fileID: 8300000, guid: ed8994e92b217f34dbbe98b96ab9efee, type: 3}
+  helpText: Pull the tilt lever backward to angle the forks slightly upward. This
+    secures the load and improves stability during movement.
+  helpAudio: {fileID: 0}
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 1
-  helpDelay: 30
+  helpDelay: 15
   CorrectIcon: 1
   Score: 1
   prefab: {fileID: 0}

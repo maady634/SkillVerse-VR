@@ -12,16 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
   m_Name: Step03
   m_EditorClassIdentifier: 
-  stepSubtitle: 
+  stepSubtitle: Press the brake pedal to slow down.
   stepAudio: {fileID: 0}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
-  helpText: 
+  helpText: Move your right foot from the accelerator to the brake pedal and press
+    down firmly to reduce speed or bring the forklift to a complete stop.
   helpAudio: {fileID: 0}
-  completionText: 
-  completionAudio: {fileID: 8300000, guid: 29cd1fecb11018d4f84a534737efbbe8, type: 3}
+  completionText: Well done!
+  completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 1
-  helpDelay: 30
-  CorrectIcon: 0
-  Score: 0
+  helpDelay: 15
+  CorrectIcon: 1
+  Score: 1
   prefab: {fileID: 0}

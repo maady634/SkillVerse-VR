@@ -12,17 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
   m_Name: Step02
   m_EditorClassIdentifier: 
-  stepSubtitle: Follow the G-O-B-O procedure to move off. Handbrake release and final
-    Observation (GOBO).
-  stepAudio: {fileID: 8300000, guid: 519f4837fce5dbd4199d4cd7d4c60849, type: 3}
+  stepSubtitle: Press the accelerator pedal gently.
+  stepAudio: {fileID: 0}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
-  helpText: Grab the hand brake using your controllers.
-  helpAudio: {fileID: 8300000, guid: 6292d4f383bf87c4aa18e3d7be559b08, type: 3}
+  helpText: Place your right foot on the accelerator pedal and apply steady, gradual
+    pressure to move the forklift forward smoothly.
+  helpAudio: {fileID: 0}
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 1
-  helpDelay: 30
+  helpDelay: 15
   CorrectIcon: 1
   Score: 1
   prefab: {fileID: 0}

@@ -12,17 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
   m_Name: Step07 b
   m_EditorClassIdentifier: 
-  stepSubtitle: Grab the highlighted gear lever and pull it to tilt the mast slightly
-    backward.
-  stepAudio: {fileID: 8300000, guid: cb7d1ec7294005f49a7656b1afa67dfa, type: 3}
+  stepSubtitle: Tilt the mast forward.
+  stepAudio: {fileID: 0}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
-  helpText: Grab the highlighted gear lever the controllers.
-  helpAudio: {fileID: 8300000, guid: 663eff5dba2016f418ac2cc9ea827039, type: 3}
+  helpText: Push the tilt lever forward gently to angle the forks downward when positioning
+    or placing a load.
+  helpAudio: {fileID: 0}
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 1
-  helpDelay: 30
+  helpDelay: 15
   CorrectIcon: 1
   Score: 1
   prefab: {fileID: 0}
