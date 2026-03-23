@@ -144,6 +144,10 @@ MonoBehaviour:
   TrainingSlider: {fileID: 85158935343177076}
   AssessmentSlider: {fileID: 3734883963238911078}
   RetryButton: {fileID: 3228133210905933114}
+  distanceFromCamera: 2
+  heightOffset: -0.2
+  followSpeed: 3
+  rotationSpeed: 5
 --- !u!1 &232182765685109007
 GameObject:
   m_ObjectHideFlags: 0

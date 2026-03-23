@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
 /// Runs a single performance trial: pick a load and place it at a target.
@@ -47,6 +49,14 @@ public class PerformanceEvaluator : MonoBehaviour
     public UnityEvent OnTrialStarted;
     public UnityEvent OnTrialCompleted;
     public UnityEvent OnTrialFailed;
+
+    [Header("UI")]
+    public TextMeshProUGUI timerText;
+
+    float timerStartTime;
+    float timerValue;
+    bool timerRunning = false;
+
 
     [Header("Optional Behavior")]
     [Tooltip("If true, calls StageManager.Instance.StepCompleted() when trial completes successfully.")]
@@ -105,6 +115,11 @@ public class PerformanceEvaluator : MonoBehaviour
     }
     void ResetInternal()
     {
+        timerRunning = false;
+        timerValue = 0f;
+
+        if (timerText != null)
+            timerText.text = "Time : 00:00";
         phase = TrialPhase.Idle;
         trialRunning = false;
         trialStartTime = 0f;
@@ -127,6 +142,8 @@ public class PerformanceEvaluator : MonoBehaviour
     void Update()
     {
         if (!trialRunning) return;
+
+        UpdateTimerUI();
 
         float t = Time.time;
 
@@ -201,6 +218,8 @@ public class PerformanceEvaluator : MonoBehaviour
             {
                 pickTime = Time.time - trialStartTime;
                 phase = TrialPhase.Picked;
+                timerStartTime = Time.time;
+                timerRunning = true;
                 if (verboseLogs) Debug.Log($"[PerformanceEvaluator] Pick detected at {pickTime:F2}s");
             }
         }
@@ -219,7 +238,7 @@ public class PerformanceEvaluator : MonoBehaviour
                     if (dist <= placementRadius)
                     {
                         if (verboseLogs) Debug.Log("[PE DEBUG] Placement VALID → Completing Trial");
-
+                        timerRunning = false;
                         placeTime = Time.time - trialStartTime;
                         pickToPlaceDuration = placeTime - pickTime;
                         phase = TrialPhase.Placed;
@@ -253,7 +272,17 @@ public class PerformanceEvaluator : MonoBehaviour
             }
         }
     }
+    void UpdateTimerUI()
+    {
+        if (!timerRunning || timerText == null) return;
 
+        timerValue = Time.time - timerStartTime;
+
+        int minutes = Mathf.FloorToInt(timerValue / 60f);
+        int seconds = Mathf.FloorToInt(timerValue % 60f);
+
+        timerText.text = $"Time : {minutes:00}:{seconds:00}";
+    }
     void SampleMetrics()
     {
         // path length and speeds

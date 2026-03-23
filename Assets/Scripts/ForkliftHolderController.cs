@@ -30,7 +30,7 @@ public class ForkliftHolderController : MonoBehaviour
 
     [Header("Thresholds (HYSTERESIS)")]
     public float attachLiftT = 0.05f;   // must lift ABOVE this
-    public float detachLiftT = 0.01f;   // must lower BELOW this
+    public float detachLiftT = 0.02f;   // must lower BELOW this
 
     [Header("Input")]
     [Range(0f, 0.2f)] public float deadZone = 0.08f;

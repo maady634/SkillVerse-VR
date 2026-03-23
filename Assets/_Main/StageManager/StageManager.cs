@@ -53,6 +53,17 @@ public class StageManager : MonoBehaviour
     private void Start()
     {
         InitializeStepState();
+        if (GameSession.SelectedMode == ModeType.Practice)
+        {
+            currentStepIndex = 13;
+            completedStepIndex = 13;
+        }
+        else
+        {
+            currentStepIndex = 0;
+            completedStepIndex = 0;
+        }
+
 
         if (StageSOs != null && StageSOs.Length > 0)
         {

@@ -185,6 +185,13 @@ public class G29VehicleInput : MonoBehaviour
     bool gearRevState;
     float gearRevLastFiredTimestamp;
 
+    public bool VehicleOnOff = true;
+
+    public void SetG29VehicleInput(bool vehicleOnOff)
+    {
+        VehicleOnOff = vehicleOnOff;
+    }
+
     // ================= GUIDED TUTORIAL GATE CONFIG =================
     [Header("Guided Tutorial Gate")]
     [Tooltip("If true, when a tutorial step is active only the expected input is accepted and other inputs are blocked.")]
