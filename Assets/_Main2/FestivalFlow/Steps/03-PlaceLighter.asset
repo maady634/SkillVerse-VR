@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
   m_Name: 03-PlaceLighter
   m_EditorClassIdentifier: 
-  stepSubtitle: Place the lighter on the firecracker's fuse to ignite it.
+  stepSubtitle: Touch each cracker's fuse with the lighter. Light all four.
   stepAudio: {fileID: 0}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
-  helpText: Hold the lighter over the marked spot on the firecracker until it lights.
+  helpText: Reach the lighter tip to the fuse of each rocket and fire shower.
   helpAudio: {fileID: 0}
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 2
   helpDelay: 30
-  CorrectIcon: 1
+  CorrectIcon: 0
   Score: 0
   prefab: {fileID: 1000000000, guid: f1a70c0100004e0a9b1100000000f013, type: 3}

@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fb2c3d6b888aa45ac93f6ae9eed1bb, type: 3}
   m_Name: 04-Restart
   m_EditorClassIdentifier: 
-  stepSubtitle: You have completed the festival experience.
+  stepSubtitle: All four crackers lit. You have completed the festival experience.
   stepAudio: {fileID: 0}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
   helpText: Point the controller at the "Restart" button and press the trigger to
     play again.
   helpAudio: {fileID: 0}
-  completionText: Great job!
+  completionText: Well done
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 2
   helpDelay: 30

@@ -18,8 +18,8 @@ MonoBehaviour:
   stepAudio2: {fileID: 0}
   helpText: Point the controller at the "Next" button and press the trigger to proceed.
   helpAudio: {fileID: 0}
-  completionText: Let's begin!
-  completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
+  completionText: 
+  completionAudio: {fileID: 0}
   completionType: 2
   helpDelay: 30
   CorrectIcon: 0

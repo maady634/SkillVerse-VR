@@ -16,12 +16,13 @@ MonoBehaviour:
   stepAudio: {fileID: 0}
   stepSubtitle2: 
   stepAudio2: {fileID: 0}
-  helpText: Move close to the lighter, point at it and press the grip button to grab it.
+  helpText: Move close to the lighter, point at it and press the grip button to grab
+    it.
   helpAudio: {fileID: 0}
   completionText: Well done!
   completionAudio: {fileID: 8300000, guid: d59fa94b432143242ab5ca1bd0fb5bce, type: 3}
   completionType: 2
   helpDelay: 30
-  CorrectIcon: 1
+  CorrectIcon: 0
   Score: 0
   prefab: {fileID: 1000000000, guid: f1a70c0100004e0a9b1100000000f012, type: 3}
